@@ -161,6 +161,22 @@
   .legend span{display:inline-flex;align-items:center;gap:6px;}
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;}
 
+  .status-filter-bar{
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:9px 20px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  }
+  .status-toggle{
+    border:1px solid var(--border); background:var(--surface); cursor:pointer;
+    padding:5px 12px; border-radius:999px; font-size:12px; font-weight:600;
+    display:inline-flex; align-items:center; gap:6px; color:var(--text-muted);
+    transition:opacity .12s ease, background .12s ease;
+  }
+  .status-toggle.inactive{opacity:.45;}
+  .status-toggle.active.status-disponivel{background:var(--sage-tint);color:#2E5F45;border-color:transparent;}
+  .status-toggle.active.status-andamento{background:var(--gold-tint);color:#8A6318;border-color:transparent;}
+  .status-toggle.active.status-finalizado{background:var(--teal-tint);color:var(--teal-dark);border-color:transparent;}
+  .status-toggle.active.status-provisionado{background:var(--plum-tint);color:#4B3E80;border-color:transparent;}
+
   /* ---------- Badges ---------- */
   .status-badge{
     display:inline-block; font-size:10.5px; font-weight:700;
@@ -253,7 +269,7 @@
 
   /* ---------- Kanban ---------- */
   .kanban-board{
-    display:grid; grid-template-columns:repeat(4,minmax(230px,1fr)); gap:14px;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px;
     overflow-x:auto; padding-bottom:8px;
   }
   .kanban-col{ background:#EEF2F1; border-radius:var(--radius-md); padding:12px; min-height:200px; }
@@ -309,7 +325,7 @@
   @media (max-width:760px){
     .week-grid{grid-template-columns:repeat(7,minmax(120px,1fr));overflow-x:auto;}
     .month-grid{grid-template-columns:repeat(7,minmax(64px,1fr));overflow-x:auto;}
-    .kanban-board{grid-template-columns:repeat(4,minmax(200px,1fr));}
+    .kanban-board{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
     .topbar{gap:10px;}
     .date-label{font-size:16px;min-width:auto;}
     .field-row{grid-template-columns:1fr;}
@@ -349,6 +365,7 @@
     <button class="btn btn-primary" id="btnNewActivity">+ Novo período</button>
   </div>
 </div>
+<div class="status-filter-bar" id="statusFilterBar"></div>
 
 <main id="app"></main>
 
@@ -495,6 +512,7 @@
   state.currentDate = T;
   state.techFilter = "all";
   state.coverageFilter = "all";
+  state.statusFilter = {disponivel:true, andamento:true, finalizado:false, provisionado:true};
   state.editingId = null;
 
   function loadState(){
@@ -537,6 +555,7 @@
     var list = state.assignments.slice();
     if(state.techFilter !== "all"){ list = list.filter(function(a){ return a.techId === state.techFilter; }); }
     if(state.coverageFilter !== "all"){ list = list.filter(function(a){ return a.coverage === state.coverageFilter; }); }
+    list = list.filter(function(a){ return !!state.statusFilter[a.status]; });
     return list;
   }
   function isActiveOn(a, dateStr){ return a.start <= dateStr && dateStr <= a.end; }
@@ -588,6 +607,23 @@
     covSel.onchange = function(){ state.coverageFilter = covSel.value; renderAll(); };
   }
 
+  function renderStatusFilterBar(){
+    var bar = document.getElementById("statusFilterBar");
+    bar.innerHTML = STATUS_ORDER.map(function(st){
+      var active = !!state.statusFilter[st];
+      return '<button type="button" class="status-toggle status-'+st+(active? ' active':' inactive')+'" data-status="'+st+'">' +
+        '<span class="dot" style="background:'+STATUS_COLOR[st]+'"></span>' + STATUS_LABELS[st] +
+      '</button>';
+    }).join("");
+    bar.querySelectorAll(".status-toggle").forEach(function(btn){
+      btn.onclick = function(){
+        var st = btn.getAttribute("data-status");
+        state.statusFilter[st] = !state.statusFilter[st];
+        renderAll();
+      };
+    });
+  }
+
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
@@ -637,10 +673,7 @@
         '<div class="date-label">'+fmtDateShort(state.currentDate)+'</div>' +
         '<button class="nav-round" id="nextDay" aria-label="Próximo dia">›</button>' +
         '<button class="btn btn-ghost btn-sm" id="todayBtn">Hoje</button>' +
-      '</div>' + legendHtml();
-    container.appendChild(head);
-
-    var acts = assignmentsForDate(state.currentDate);
+      '</div>';
     if(acts.length===0){
       var empty = document.createElement("div");
       empty.className = "empty-state";
@@ -677,7 +710,7 @@
         '<div class="date-label">'+fmtDD_MM(start)+' – '+fmtDateLong(endOfWeek)+'</div>' +
         '<button class="nav-round" id="nextWeek" aria-label="Próxima semana">›</button>' +
         '<button class="btn btn-ghost btn-sm" id="todayBtn">Hoje</button>' +
-      '</div>' + legendHtml();
+      '</div>';
     container.appendChild(head);
 
     var grid = document.createElement("div");
@@ -722,7 +755,7 @@
         '<div class="date-label">'+MONTH_NAMES[month]+' de '+year+'</div>' +
         '<button class="nav-round" id="nextMonth" aria-label="Próximo mês">›</button>' +
         '<button class="btn btn-ghost btn-sm" id="todayBtn">Hoje</button>' +
-      '</div>' + legendHtml();
+      '</div>';
     container.appendChild(head);
 
     var grid = document.createElement("div");
@@ -777,7 +810,7 @@
   function renderList(container){
     var head = document.createElement("div");
     head.className = "panel-head";
-    head.innerHTML = '<div class="date-label" style="font-size:16px;">Todos os períodos</div>' + legendHtml();
+    head.innerHTML = '<div class="date-label" style="font-size:16px;">Todos os períodos</div>';
     container.appendChild(head);
 
     var acts = visibleAssignments().slice().sort(function(a,b){ return a.start.localeCompare(b.start); });
@@ -823,7 +856,7 @@
     var board = document.createElement("div");
     board.className = "kanban-board";
 
-    STATUS_ORDER.forEach(function(st){
+    STATUS_ORDER.filter(function(st){ return !!state.statusFilter[st]; }).forEach(function(st){
       var col = document.createElement("div");
       col.className = "kanban-col";
       col.setAttribute("data-status", st);
@@ -874,6 +907,7 @@
   function renderAll(){
     renderTabs();
     renderFilters();
+    renderStatusFilterBar();
     var app = document.getElementById("app");
     app.innerHTML = "";
     if(state.view==="daily") renderDaily(app);
