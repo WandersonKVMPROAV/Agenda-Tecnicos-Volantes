@@ -161,22 +161,6 @@
   .legend span{display:inline-flex;align-items:center;gap:6px;}
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;}
 
-  .status-filter-bar{
-    display:flex; gap:6px; flex-wrap:wrap; align-items:center;
-    padding:2px 6px; border-left:1px solid var(--border); border-right:1px solid var(--border);
-  }
-  .status-toggle{
-    border:1px solid var(--border); background:var(--surface); cursor:pointer;
-    padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:600;
-    display:inline-flex; align-items:center; gap:5px; color:var(--text-muted);
-    transition:opacity .12s ease, background .12s ease; white-space:nowrap;
-  }
-  .status-toggle.inactive{opacity:.4;}
-  .status-toggle.active.status-disponivel{background:var(--sage-tint);color:#2E5F45;border-color:transparent;}
-  .status-toggle.active.status-andamento{background:var(--gold-tint);color:#8A6318;border-color:transparent;}
-  .status-toggle.active.status-finalizado{background:var(--teal-tint);color:var(--teal-dark);border-color:transparent;}
-  .status-toggle.active.status-provisionado{background:var(--plum-tint);color:#4B3E80;border-color:transparent;}
-
   /* ---------- Badges ---------- */
   .status-badge{
     display:inline-block; font-size:10.5px; font-weight:700;
@@ -329,7 +313,6 @@
     .topbar{gap:10px;}
     .date-label{font-size:16px;min-width:auto;}
     .field-row{grid-template-columns:1fr;}
-    .status-filter-bar{border-left:none;border-right:none;padding:2px 0;}
   }
 
   @media (prefers-color-scheme: dark){
@@ -362,7 +345,7 @@
   <div class="topbar-right">
     <select class="filter-select" id="techFilter" aria-label="Filtrar por técnico"></select>
     <select class="filter-select" id="coverageFilter" aria-label="Filtrar por tipo de cobertura"></select>
-    <div class="status-filter-bar" id="statusFilterBar"></div>
+    <select class="filter-select" id="statusFilterSelect" aria-label="Filtrar por status"></select>
     <button class="btn btn-ghost" id="btnExport" title="Gera um arquivo .html só leitura, com os dados atuais, para enviar aos técnicos">⬇ Exportar para técnicos</button>
     <button class="btn btn-primary" id="btnNewActivity">+ Novo período</button>
   </div>
@@ -513,7 +496,7 @@
   state.currentDate = T;
   state.techFilter = "all";
   state.coverageFilter = "all";
-  state.statusFilter = {disponivel:true, andamento:true, finalizado:false, provisionado:true};
+  state.statusFilter = "default";
   state.editingId = null;
 
   function loadState(){
@@ -556,7 +539,11 @@
     var list = state.assignments.slice();
     if(state.techFilter !== "all"){ list = list.filter(function(a){ return a.techId === state.techFilter; }); }
     if(state.coverageFilter !== "all"){ list = list.filter(function(a){ return a.coverage === state.coverageFilter; }); }
-    list = list.filter(function(a){ return !!state.statusFilter[a.status]; });
+    if(state.statusFilter === "default"){
+      list = list.filter(function(a){ return a.status !== "finalizado"; });
+    } else if(state.statusFilter !== "all"){
+      list = list.filter(function(a){ return a.status === state.statusFilter; });
+    }
     return list;
   }
   function isActiveOn(a, dateStr){ return a.start <= dateStr && dateStr <= a.end; }
@@ -606,23 +593,18 @@
     covSel.innerHTML = covOpts.join("");
     covSel.value = state.coverageFilter;
     covSel.onchange = function(){ state.coverageFilter = covSel.value; renderAll(); };
-  }
 
-  function renderStatusFilterBar(){
-    var bar = document.getElementById("statusFilterBar");
-    bar.innerHTML = STATUS_ORDER.map(function(st){
-      var active = !!state.statusFilter[st];
-      return '<button type="button" class="status-toggle status-'+st+(active? ' active':' inactive')+'" data-status="'+st+'">' +
-        '<span class="dot" style="background:'+STATUS_COLOR[st]+'"></span>' + STATUS_LABELS[st] +
-      '</button>';
-    }).join("");
-    bar.querySelectorAll(".status-toggle").forEach(function(btn){
-      btn.onclick = function(){
-        var st = btn.getAttribute("data-status");
-        state.statusFilter[st] = !state.statusFilter[st];
-        renderAll();
-      };
+    var statusSel = document.getElementById("statusFilterSelect");
+    var statusOpts = [
+      '<option value="default">Todos (exceto Finalizado)</option>',
+      '<option value="all">Todos os status</option>'
+    ];
+    STATUS_ORDER.forEach(function(st){
+      statusOpts.push('<option value="'+st+'">'+STATUS_LABELS[st]+'</option>');
     });
+    statusSel.innerHTML = statusOpts.join("");
+    statusSel.value = state.statusFilter;
+    statusSel.onchange = function(){ state.statusFilter = statusSel.value; renderAll(); };
   }
 
   function escapeHtml(s){
@@ -675,6 +657,9 @@
         '<button class="nav-round" id="nextDay" aria-label="Próximo dia">›</button>' +
         '<button class="btn btn-ghost btn-sm" id="todayBtn">Hoje</button>' +
       '</div>';
+    container.appendChild(head);
+
+    var acts = assignmentsForDate(state.currentDate);
     if(acts.length===0){
       var empty = document.createElement("div");
       empty.className = "empty-state";
@@ -857,7 +842,12 @@
     var board = document.createElement("div");
     board.className = "kanban-board";
 
-    STATUS_ORDER.filter(function(st){ return !!state.statusFilter[st]; }).forEach(function(st){
+    var activeStatuses = STATUS_ORDER.filter(function(st){
+      if(state.statusFilter === "default") return st !== "finalizado";
+      if(state.statusFilter === "all") return true;
+      return st === state.statusFilter;
+    });
+    activeStatuses.forEach(function(st){
       var col = document.createElement("div");
       col.className = "kanban-col";
       col.setAttribute("data-status", st);
@@ -908,7 +898,6 @@
   function renderAll(){
     renderTabs();
     renderFilters();
-    renderStatusFilterBar();
     var app = document.getElementById("app");
     app.innerHTML = "";
     if(state.view==="daily") renderDaily(app);
