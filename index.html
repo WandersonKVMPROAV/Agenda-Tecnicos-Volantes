@@ -13,6 +13,7 @@
     --teal-dark:#125A66;
     --teal-tint:#E4F1F2;
     --navy:#2E4756;
+    --date-accent:#2E4756;
     --navy-tint:#E9EDEF;
     --gold:#D9A04B;
     --gold-tint:#FBF0DE;
@@ -188,7 +189,7 @@
   .assignment-row:hover{box-shadow:var(--shadow-2);}
   .ar-period{
     font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px;
-    color:var(--navy); min-width:112px;
+    color:var(--date-accent); min-width:112px;
   }
   .ar-period small{display:block;font-weight:500;color:var(--text-muted);font-size:10.5px;}
   .ar-main{flex:1;min-width:180px;}
@@ -243,7 +244,7 @@
   .list-group{margin-bottom:20px;}
   .list-month-head{
     font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px;
-    text-transform:capitalize; color:var(--navy); margin-bottom:8px;
+    text-transform:capitalize; color:var(--date-accent); margin-bottom:8px;
     padding-bottom:6px; border-bottom:2px solid var(--border);
   }
 
@@ -315,6 +316,7 @@
     :root:not([data-theme="light"]){
       --bg:#0F1517; --surface:#182024; --border:#283134; --text:#EAF0EF; --text-muted:#8B9A9E;
       --teal-tint:#0F3339; --gold-tint:#332714; --sage-tint:#173023; --plum-tint:#251F38; --terracotta-tint:#331715;
+      --date-accent:#D3DBDE;
     }
     :root:not([data-theme="light"]) .kanban-col{background:#1D2629;}
     :root:not([data-theme="light"]) .kanban-col.drag-over{background:#26312F;}
@@ -323,6 +325,7 @@
   :root[data-theme="dark"]{
     --bg:#0F1517; --surface:#182024; --border:#283134; --text:#EAF0EF; --text-muted:#8B9A9E;
     --teal-tint:#0F3339; --gold-tint:#332714; --sage-tint:#173023; --plum-tint:#251F38; --terracotta-tint:#331715;
+    --date-accent:#D3DBDE;
   }
   :root[data-theme="dark"] .kanban-col{background:#1D2629;}
   :root[data-theme="dark"] .kanban-col.drag-over{background:#26312F;}
@@ -664,8 +667,8 @@
         acts.map(function(a){
           var tech = techById(a.techId);
           return '<div class="week-chip" style="border-left-color:'+STATUS_COLOR[a.status]+'" data-id="'+a.id+'">' +
-            '<span class="a-title">'+escapeHtml(clientLabel(a))+'</span>' +
-            '<span class="a-tech">'+COVERAGE_ICON[a.coverage]+' '+escapeHtml(tech.name)+'</span>' +
+            '<span class="a-title">'+escapeHtml(tech.name)+'</span>' +
+            '<span class="a-tech">'+COVERAGE_ICON[a.coverage]+' '+escapeHtml(clientLabel(a))+'</span>' +
           '</div>';
         }).join("");
       grid.appendChild(col);
