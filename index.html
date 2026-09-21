@@ -195,6 +195,8 @@
   .ar-main{flex:1;min-width:180px;}
   .ar-main .a-title{font-weight:700;font-size:13.5px;}
   .ar-main .a-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .addr-line{font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.3;}
+  .addr-line .pin{opacity:.8;}
   .tech-chip{
     display:inline-flex; align-items:center; gap:6px;
     font-size:12px; font-weight:700; color:#fff;
@@ -444,6 +446,28 @@
     "Santander","Ouribank","Mercado Livre"
   ];
 
+  var ADDRESSES = {
+    "Santander|Sede": "Av. Pres. Juscelino Kubitschek, 636-712 - Vila Nova Conceição, São Paulo - SP, 04542-040",
+    "Santander|Radar": "R. Amador Bueno, 474 - Santo Amaro, São Paulo - SP, 04752-005",
+    "Santander|GD": "Av. Interlagos, 3501 - Vila Arriete, São Paulo - SP, 04661-200",
+    "Santander|Farol": "R. João Bricola, 24 - Centro Histórico de São Paulo, São Paulo - SP, 01014-900",
+    "Santander|Piracicaba": "R. Quinze de Novembro, 744 - Centro, Piracicaba - SP, 13400-370",
+    "Itaú Varejo - CEIC|": "R. Volkswagen, 1 - Jabaquara, São Paulo - SP, 04344-902",
+    "Itaú Varejo - CTO|": "Av. do Estado, 5533 - Cambuci, São Paulo - SP, 03105-003",
+    "Itaú Atacado - BBA|": "Av. Brig. Faria Lima, 3500 - Itaim Bibi, São Paulo - SP, 04538-132",
+    "Banco BV|": "Av. das Nações Unidas, 14171 - Vila Gertrudes, São Paulo - SP, 04794-000",
+    "P&G SP|": "Av. Dr. Chucri Zaidan, 296 - Vila Cordeiro, São Paulo - SP, 05502-001",
+    "P&G Louveira|": "Estr. Mun. Louveira Traviú, 2617 - Leitão, Louveira - SP, 13290-000",
+    "Zurich|": "Av. Jornalista Roberto Marinho, 85 - Brooklin Novo, São Paulo - SP, 04576-010",
+    "Mercado Livre|": "Av. das Nações Unidas, 3.003 - Bonfim, Osasco - SP, 06233-903",
+    "Ouribank|": "Av. Paulista, 1.728 - Bela Vista, São Paulo - SP, 01310-919",
+    "Porto Seguros|": "Alameda Barão de Piracicaba, 618 - Campos Elíseos, São Paulo - SP, 01216-012"
+  };
+  function getAddress(a){
+    var key = (a.client||"") + "|" + (a.site||"");
+    return ADDRESSES[key] || "";
+  }
+
   var STATUS_LABELS = {disponivel:"Disponível", andamento:"Em andamento", finalizado:"Finalizado", provisionado:"Provisionado"};
   var STATUS_ORDER = ["disponivel","andamento","finalizado","provisionado"];
   var STATUS_COLOR = {disponivel:"var(--sage)", andamento:"var(--gold)", finalizado:"var(--teal)", provisionado:"var(--plum)"};
@@ -586,12 +610,14 @@
 
   function assignmentRowHtml(a){
     var tech = techById(a.techId);
+    var addr = getAddress(a);
     return '<div class="assignment-row" style="border-left:4px solid '+STATUS_COLOR[a.status]+'" data-id="'+a.id+'">' +
       '<div class="ar-period">'+fmtDD_MM(a.start)+' – '+fmtDD_MM(a.end)+'<small>'+(a.start===a.end? '1 dia' : '')+'</small></div>' +
       '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span>' +
       '<div class="ar-main">' +
         '<div class="a-title">'+escapeHtml(clientLabel(a))+'</div>' +
         '<div class="a-meta">Responsável: '+escapeHtml(a.responsible||"—")+(a.notes? ' · '+escapeHtml(a.notes) : '')+'</div>' +
+        (addr ? '<div class="addr-line"><span class="pin">📍</span> '+escapeHtml(addr)+'</div>' : '') +
       '</div>' +
       '<div class="ar-tags">' +
         '<span class="coverage-tag">'+COVERAGE_ICON[a.coverage]+' '+COVERAGE_LABELS[a.coverage]+'</span>' +
@@ -666,9 +692,11 @@
         '<div class="week-day-num">'+d.getDate()+'</div>' +
         acts.map(function(a){
           var tech = techById(a.techId);
+          var addr = getAddress(a);
           return '<div class="week-chip" style="border-left-color:'+STATUS_COLOR[a.status]+'" data-id="'+a.id+'">' +
             '<span class="a-title">'+escapeHtml(tech.name)+'</span>' +
             '<span class="a-tech">'+COVERAGE_ICON[a.coverage]+' '+escapeHtml(clientLabel(a))+'</span>' +
+            (addr ? '<div class="addr-line"><span class="pin">📍</span> '+escapeHtml(addr)+'</div>' : '') +
           '</div>';
         }).join("");
       grid.appendChild(col);
@@ -803,10 +831,12 @@
       col.innerHTML = '<div class="kanban-col-head"><span style="color:'+STATUS_COLOR[st]+'">'+STATUS_LABELS[st]+'</span><span class="kanban-count">'+colActs.length+'</span></div>' +
         colActs.map(function(a){
           var tech = techById(a.techId);
+          var addr = getAddress(a);
           return '<div class="kanban-card"'+(READ_ONLY? '' : ' draggable="true"')+' data-id="'+a.id+'">' +
             '<div class="a-title">'+escapeHtml(clientLabel(a))+'</div>' +
             '<div class="a-meta">'+fmtDD_MM(a.start)+' – '+fmtDD_MM(a.end)+' · '+COVERAGE_ICON[a.coverage]+' '+COVERAGE_LABELS[a.coverage]+'</div>' +
             '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span>' +
+            (addr ? '<div class="addr-line" style="margin-top:6px;"><span class="pin">📍</span> '+escapeHtml(addr)+'</div>' : '') +
           '</div>';
         }).join("");
       board.appendChild(col);
@@ -874,10 +904,12 @@
     detailActions.style.display = "flex";
     var body = document.getElementById("detailBody");
     body.style.display = "block";
+    var addr = getAddress(a);
     body.innerHTML =
       '<div class="field"><label>Técnico</label>' +
         '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span></div>' +
       '<div class="field"><label>Cliente</label><div>'+escapeHtml(clientLabel(a))+'</div></div>' +
+      (addr ? '<div class="field"><label>Endereço</label><div>📍 '+escapeHtml(addr)+'</div></div>' : '') +
       '<div class="field-row">' +
         '<div class="field"><label>Data início</label><div>'+fmtDateLong(a.start)+'</div></div>' +
         '<div class="field"><label>Data fim</label><div>'+fmtDateLong(a.end)+'</div></div>' +
