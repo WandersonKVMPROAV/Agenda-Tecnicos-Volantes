@@ -162,16 +162,16 @@
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;}
 
   .status-filter-bar{
-    background:var(--surface); border-bottom:1px solid var(--border);
-    padding:9px 20px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+    padding:2px 6px; border-left:1px solid var(--border); border-right:1px solid var(--border);
   }
   .status-toggle{
     border:1px solid var(--border); background:var(--surface); cursor:pointer;
-    padding:5px 12px; border-radius:999px; font-size:12px; font-weight:600;
-    display:inline-flex; align-items:center; gap:6px; color:var(--text-muted);
-    transition:opacity .12s ease, background .12s ease;
+    padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:600;
+    display:inline-flex; align-items:center; gap:5px; color:var(--text-muted);
+    transition:opacity .12s ease, background .12s ease; white-space:nowrap;
   }
-  .status-toggle.inactive{opacity:.45;}
+  .status-toggle.inactive{opacity:.4;}
   .status-toggle.active.status-disponivel{background:var(--sage-tint);color:#2E5F45;border-color:transparent;}
   .status-toggle.active.status-andamento{background:var(--gold-tint);color:#8A6318;border-color:transparent;}
   .status-toggle.active.status-finalizado{background:var(--teal-tint);color:var(--teal-dark);border-color:transparent;}
@@ -329,6 +329,7 @@
     .topbar{gap:10px;}
     .date-label{font-size:16px;min-width:auto;}
     .field-row{grid-template-columns:1fr;}
+    .status-filter-bar{border-left:none;border-right:none;padding:2px 0;}
   }
 
   @media (prefers-color-scheme: dark){
@@ -361,11 +362,11 @@
   <div class="topbar-right">
     <select class="filter-select" id="techFilter" aria-label="Filtrar por técnico"></select>
     <select class="filter-select" id="coverageFilter" aria-label="Filtrar por tipo de cobertura"></select>
+    <div class="status-filter-bar" id="statusFilterBar"></div>
     <button class="btn btn-ghost" id="btnExport" title="Gera um arquivo .html só leitura, com os dados atuais, para enviar aos técnicos">⬇ Exportar para técnicos</button>
     <button class="btn btn-primary" id="btnNewActivity">+ Novo período</button>
   </div>
 </div>
-<div class="status-filter-bar" id="statusFilterBar"></div>
 
 <main id="app"></main>
 
