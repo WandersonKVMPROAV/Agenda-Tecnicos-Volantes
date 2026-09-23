@@ -187,9 +187,10 @@
     cursor:pointer; box-shadow:var(--shadow-1);
   }
   .assignment-row:hover{box-shadow:var(--shadow-2);}
+  .ar-when{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; min-width:120px; }
   .ar-period{
     font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px;
-    color:var(--date-accent); min-width:112px;
+    color:var(--date-accent);
   }
   .ar-period small{display:block;font-weight:500;color:var(--text-muted);font-size:10.5px;}
   .ar-main{flex:1;min-width:180px;}
@@ -435,11 +436,11 @@
   var READ_ONLY = /*READ_ONLY_FLAG*/true/*READ_ONLY_FLAG*/;
 
   var TECHNICIANS = [
-    {id:"t1", name:"Raul", color:"#3F6FB0"},
+    {id:"t1", name:"Raul Alves", color:"#3F6FB0"},
     {id:"t2", name:"Pedro Henrique", color:"#B0623F"},
     {id:"t3", name:"Tiago Moure", color:"#598C3F"},
-    {id:"t4", name:"Kenneth", color:"#A34E86"},
-    {id:"t5", name:"Johann", color:"#8A6D3F"}
+    {id:"t4", name:"Kenneth Levi", color:"#A34E86"},
+    {id:"t5", name:"Johann Bittenbinder", color:"#8A6D3F"}
   ];
 
   var CLIENTS = [
@@ -500,19 +501,13 @@
   state.editingId = null;
 
   function loadState(){
-    try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        var parsed = JSON.parse(raw);
-        if(parsed && parsed.technicians && parsed.assignments){ return parsed; }
-      }
-    }catch(e){}
+    // A fonte da verdade agora é sempre o arquivo publicado (coverage_data.json via GitHub).
+    // Ignoramos qualquer estado salvo antigo no navegador para nunca mostrar dados desatualizados.
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
     return {technicians: TECHNICIANS.slice(), assignments: DEFAULT_ASSIGNMENTS.slice()};
   }
   function saveState(){
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({technicians:state.technicians, assignments:state.assignments}));
-    }catch(e){}
+    // Persistência local desativada de propósito (ver loadState).
   }
 
   function techById(id){
@@ -632,8 +627,10 @@
     var tech = techById(a.techId);
     var addr = getAddress(a);
     return '<div class="assignment-row" style="border-left:4px solid '+STATUS_COLOR[a.status]+'" data-id="'+a.id+'">' +
-      '<div class="ar-period">'+fmtDD_MM(a.start)+' – '+fmtDD_MM(a.end)+'<small>'+(a.start===a.end? '1 dia' : '')+'</small></div>' +
-      '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span>' +
+      '<div class="ar-when">' +
+        '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span>' +
+        '<div class="ar-period">'+fmtDD_MM(a.start)+' – '+fmtDD_MM(a.end)+'<small>'+(a.start===a.end? '1 dia' : '')+'</small></div>' +
+      '</div>' +
       '<div class="ar-main">' +
         '<div class="a-title">'+escapeHtml(clientLabel(a))+'</div>' +
         '<div class="a-meta">Responsável: '+escapeHtml(a.responsible||"—")+(a.notes? ' · '+escapeHtml(a.notes) : '')+'</div>' +
