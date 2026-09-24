@@ -567,7 +567,13 @@
     }
     return list;
   }
-  function isActiveOn(a, dateStr){ return a.start <= dateStr && dateStr <= a.end; }
+  function isWeekend(dateStr){
+    var day = new Date(dateStr+"T00:00:00").getDay();
+    return day === 0 || day === 6;
+  }
+  function isActiveOn(a, dateStr){
+    return a.start <= dateStr && dateStr <= a.end && !isWeekend(dateStr);
+  }
   function assignmentsForDate(dateStr){
     return visibleAssignments().filter(function(a){ return isActiveOn(a, dateStr); })
       .sort(function(a,b){ return a.start.localeCompare(b.start); });
