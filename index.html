@@ -797,7 +797,7 @@
     var peopleHtml = acts.map(function(a){
       var tech = techById(a.techId);
       return '<div class="dash-hero-person" style="background:'+tech.color+'22;">' +
-        '<div class="p-name" style="color:'+tech.color+';">'+escapeHtml(tech.name)+'</div>' +
+        '<div class="p-name" style="color:#fff;">'+escapeHtml(tech.name)+'</div>' +
         '<div class="p-sub" style="color:var(--text);opacity:.8;">'+escapeHtml(clientLabel(a))+'</div>' +
       '</div>';
     }).join("");
