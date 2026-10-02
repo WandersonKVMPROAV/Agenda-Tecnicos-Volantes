@@ -94,6 +94,7 @@
 
   /* ---------- Dashboard view ---------- */
   .dash-hero-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; }
+  .dash-hero-row.single{ grid-template-columns:1fr; }
   .dash-hero-card{
     position:relative; overflow:hidden; border-radius:var(--radius-lg);
     background:linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);
@@ -790,17 +791,16 @@
   /* ============ Vista Início / Dashboard ============ */
   function heroCardHtml(label, dateStr){
     var acts = assignmentsForDate(dateStr);
+    if(acts.length === 0) return null; // nada agendado nesta data: não exibir o card
     var d = new Date(dateStr+"T00:00:00");
     var weekday = WEEKDAY_NAMES[d.getDay()];
-    var peopleHtml = acts.length
-      ? acts.map(function(a){
-          var tech = techById(a.techId);
-          return '<div class="dash-hero-person" style="background:'+tech.color+'22;">' +
-            '<div class="p-name" style="color:'+tech.color+';">'+escapeHtml(tech.name)+'</div>' +
-            '<div class="p-sub" style="color:var(--text);opacity:.8;">'+escapeHtml(clientLabel(a))+'</div>' +
-          '</div>';
-        }).join("")
-      : '<div class="dash-hero-empty" style="color:var(--text-muted);">Nenhum técnico em campo</div>';
+    var peopleHtml = acts.map(function(a){
+      var tech = techById(a.techId);
+      return '<div class="dash-hero-person" style="background:'+tech.color+'22;">' +
+        '<div class="p-name" style="color:'+tech.color+';">'+escapeHtml(tech.name)+'</div>' +
+        '<div class="p-sub" style="color:var(--text);opacity:.8;">'+escapeHtml(clientLabel(a))+'</div>' +
+      '</div>';
+    }).join("");
     return '<div class="dash-hero-card" style="background:linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);">' +
       '<div class="dash-hero-label">'+label+'</div>' +
       '<div class="dash-hero-date">'+fmtDD_MM(dateStr)+'</div>' +
@@ -816,10 +816,18 @@
       '<div class="legend"><span>Visão geral de hoje, amanhã e indicadores gerais</span></div>';
     container.appendChild(head);
 
-    var heroRow = document.createElement("div");
-    heroRow.className = "dash-hero-row";
-    heroRow.innerHTML = heroCardHtml("Hoje", T) + heroCardHtml("Amanhã", addDaysToStr(T,1));
-    container.appendChild(heroRow);
+    var cards = [heroCardHtml("Hoje", T), heroCardHtml("Amanhã", addDaysToStr(T,1))].filter(Boolean);
+    if(cards.length){
+      var heroRow = document.createElement("div");
+      heroRow.className = "dash-hero-row" + (cards.length===1 ? " single":"");
+      heroRow.innerHTML = cards.join("");
+      container.appendChild(heroRow);
+    } else {
+      var noneCard = document.createElement("div");
+      noneCard.className = "empty-state";
+      noneCard.innerHTML = '<div class="icon">📭</div>Nada agendado para hoje ou amanhã.';
+      container.appendChild(noneCard);
+    }
 
     // Próxima atividade (primeira futura ou de hoje em diante, ordenada por início)
     var upcoming = state.assignments.slice()
