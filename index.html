@@ -351,28 +351,7 @@
     padding-bottom:6px; border-bottom:2px solid var(--border);
   }
 
-  /* ---------- Kanban ---------- */
-  .kanban-board{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px;
-    overflow-x:auto; padding-bottom:8px;
-  }
-  .kanban-col{ background:#EEF2F1; border-radius:var(--radius-md); padding:12px; min-height:200px; }
-  .kanban-col-head{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:10px; font-weight:700; font-size:13px;
-  }
-  .kanban-count{ background:#fff; border-radius:999px; padding:1px 8px; font-size:11.5px; color:var(--text-muted); }
-  .kanban-card{
-    background:var(--surface); border-radius:var(--radius-sm); border:1px solid var(--border);
-    padding:10px 11px; margin-bottom:9px; cursor:grab; box-shadow:var(--shadow-1);
-  }
-  .kanban-card:active{cursor:grabbing;}
-  .kanban-card.dragging{opacity:.4;}
-  .kanban-col.drag-over{background:#E2EAE8;}
-  .kanban-card .a-title{font-weight:700;font-size:13px;margin-bottom:4px;}
-  .kanban-card .a-meta{font-size:11.5px;color:var(--text-muted);margin-bottom:5px;}
-
-  /* ---------- Empty state ---------- */
+/* ---------- Empty state ---------- */
   .empty-state{ text-align:center; padding:60px 20px; color:var(--text-muted); }
   .empty-state .icon{font-size:34px;margin-bottom:10px;}
 
@@ -436,7 +415,6 @@
   @media (max-width:760px){
     .week-grid{grid-template-columns:repeat(7,minmax(120px,1fr));overflow-x:auto;}
     .month-grid{grid-template-columns:repeat(7,minmax(64px,1fr));overflow-x:auto;}
-    .kanban-board{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
     .topbar{gap:10px;}
     .date-label{font-size:16px;min-width:auto;}
     .field-row{grid-template-columns:1fr;}
@@ -448,8 +426,6 @@
       --teal-tint:#0F3339; --gold-tint:#332714; --sage-tint:#173023; --plum-tint:#251F38; --terracotta-tint:#331715;
       --date-accent:#D3DBDE;
     }
-    :root:not([data-theme="light"]) .kanban-col{background:#1D2629;}
-    :root:not([data-theme="light"]) .kanban-col.drag-over{background:#26312F;}
     :root:not([data-theme="light"]) .week-chip{background:#1D2629;}
   }
   :root[data-theme="dark"]{
@@ -457,8 +433,6 @@
     --teal-tint:#0F3339; --gold-tint:#332714; --sage-tint:#173023; --plum-tint:#251F38; --terracotta-tint:#331715;
     --date-accent:#D3DBDE;
   }
-  :root[data-theme="dark"] .kanban-col{background:#1D2629;}
-  :root[data-theme="dark"] .kanban-col.drag-over{background:#26312F;}
   :root[data-theme="dark"] .week-chip{background:#1D2629;}
 </style>
 </head>
@@ -482,6 +456,7 @@
     <div class="main-topbar">
       <select class="filter-select" id="techFilter" aria-label="Filtrar por técnico"></select>
       <select class="filter-select" id="coverageFilter" aria-label="Filtrar por tipo de cobertura"></select>
+      <select class="filter-select" id="clientFilter" aria-label="Filtrar por cliente"></select>
       <select class="filter-select" id="statusFilterSelect" aria-label="Filtrar por status"></select>
       <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-ghost" id="btnExport" title="Gera um arquivo .html só leitura, com os dados atuais, para enviar aos técnicos">⬇ Exportar para técnicos</button>
@@ -635,6 +610,7 @@
   state.currentDate = T;
   state.techFilter = "all";
   state.coverageFilter = "all";
+  state.clientFilter = "all";
   state.statusFilter = "default";
   state.editingId = null;
 
@@ -677,6 +653,7 @@
     var list = state.assignments.slice();
     if(state.techFilter !== "all"){ list = list.filter(function(a){ return a.techId === state.techFilter; }); }
     if(state.coverageFilter !== "all"){ list = list.filter(function(a){ return a.coverage === state.coverageFilter; }); }
+    if(state.clientFilter !== "all"){ list = list.filter(function(a){ return a.client === state.clientFilter; }); }
     if(state.statusFilter === "default"){
       list = list.filter(function(a){ return a.status !== "finalizado"; });
     } else if(state.statusFilter !== "all"){
@@ -703,7 +680,6 @@
     {id:"weekly", label:"Semanal", icon:"🗓️"},
     {id:"monthly", label:"Mensal", icon:"📆"},
     {id:"list", label:"Lista", icon:"📋"},
-    {id:"kanban", label:"Kanban", icon:"🗂️"},
     {id:"coverage", label:"Cobertura", icon:"📍"}
   ];
 
@@ -731,6 +707,12 @@
     sel.innerHTML = opts.join("");
     sel.value = state.techFilter;
     sel.onchange = function(){ state.techFilter = sel.value; renderAll(); };
+
+    var cliSel = document.getElementById("clientFilter");
+    cliSel.innerHTML = '<option value="all">Todos os clientes</option>' + CLIENTS.slice().sort(function(a,b){ return a.localeCompare(b); })
+      .map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join("");
+    cliSel.value = state.clientFilter;
+    cliSel.onchange = function(){ state.clientFilter = cliSel.value; renderAll(); };
 
     var covSel = document.getElementById("coverageFilter");
     var covOpts = ['<option value="all">Todos os tipos</option>'];
@@ -1051,72 +1033,6 @@
     attachRowHandlers(container);
   }
 
-  /* ============ Vista Kanban ============ */
-  var dragState = {id:null};
-
-  function renderKanban(container){
-    var head = document.createElement("div");
-    head.className = "panel-head page-banner";
-    var hint = READ_ONLY ? "Toque em um card para ver os detalhes" : "Arraste os cards para mudar o status";
-    head.innerHTML = '<div class="date-label" style="font-size:16px;">Kanban por status</div><div class="legend"><span>'+hint+'</span></div>';
-    container.appendChild(head);
-
-    var acts = visibleAssignments();
-    var board = document.createElement("div");
-    board.className = "kanban-board";
-
-    var activeStatuses = STATUS_ORDER.filter(function(st){
-      if(state.statusFilter === "default") return st !== "finalizado";
-      if(state.statusFilter === "all") return true;
-      return st === state.statusFilter;
-    });
-    activeStatuses.forEach(function(st){
-      var col = document.createElement("div");
-      col.className = "kanban-col";
-      col.setAttribute("data-status", st);
-      var colActs = acts.filter(function(a){ return a.status===st; })
-        .sort(function(a,b){ return a.start.localeCompare(b.start); });
-      col.innerHTML = '<div class="kanban-col-head"><span style="color:'+STATUS_COLOR[st]+'">'+STATUS_LABELS[st]+'</span><span class="kanban-count">'+colActs.length+'</span></div>' +
-        colActs.map(function(a){
-          var tech = techById(a.techId);
-          var addr = getAddress(a);
-          return '<div class="kanban-card"'+(READ_ONLY? '' : ' draggable="true"')+' data-id="'+a.id+'">' +
-            '<div class="a-title">'+escapeHtml(clientLabel(a))+'</div>' +
-            '<div class="a-meta">'+fmtDD_MM(a.start)+' – '+fmtDD_MM(a.end)+' · '+COVERAGE_ICON[a.coverage]+' '+COVERAGE_LABELS[a.coverage]+'</div>' +
-            '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span>' +
-            (addr ? '<div class="addr-line" style="margin-top:6px;"><span class="pin">📍</span> '+escapeHtml(addr)+'</div>' : '') +
-          '</div>';
-        }).join("");
-      board.appendChild(col);
-    });
-
-    container.appendChild(board);
-    attachRowHandlers(container);
-
-    if(READ_ONLY) return;
-
-    board.querySelectorAll(".kanban-card").forEach(function(card){
-      card.addEventListener("dragstart", function(e){
-        dragState.id = card.getAttribute("data-id");
-        card.classList.add("dragging");
-        e.dataTransfer.effectAllowed = "move";
-      });
-      card.addEventListener("dragend", function(){ card.classList.remove("dragging"); });
-    });
-    board.querySelectorAll(".kanban-col").forEach(function(col){
-      col.addEventListener("dragover", function(e){ e.preventDefault(); col.classList.add("drag-over"); });
-      col.addEventListener("dragleave", function(){ col.classList.remove("drag-over"); });
-      col.addEventListener("drop", function(e){
-        e.preventDefault();
-        col.classList.remove("drag-over");
-        var id = dragState.id;
-        var newStatus = col.getAttribute("data-status");
-        var act = state.assignments.find(function(a){ return a.id===id; });
-        if(act && newStatus){ act.status = newStatus; saveState(); renderAll(); }
-      });
-    });
-  }
-
   /* ============ Vista Cobertura ============ */
   function renderCoverage(container){
     var head = document.createElement("div");
@@ -1133,14 +1049,15 @@
         if(!scheduledFirst[x.client] || x.start < scheduledFirst[x.client]) scheduledFirst[x.client] = x.start;
       }
     });
-    var unvisited = CLIENTS.filter(function(c){ return !visitedAny[c]; });
+    var shownClients = CLIENTS.filter(function(c){ return state.clientFilter === "all" || state.clientFilter === c; });
+    var unvisited = shownClients.filter(function(c){ return !visitedAny[c]; });
     var unvCard = document.createElement("div");
     unvCard.className = "coverage-tech-card";
     unvCard.style.borderColor = "var(--gold)";
     unvCard.innerHTML =
       '<div class="coverage-tech-head">' +
         '<span style="font-family:\'Space Grotesk\',sans-serif;font-weight:700;font-size:16px;">Clientes sem cobertura</span>' +
-        '<span class="coverage-ratio">'+unvisited.length+' de '+CLIENTS.length+' clientes</span>' +
+        '<span class="coverage-ratio">'+unvisited.length+' de '+shownClients.length+' clientes</span>' +
       '</div>' +
       '<div class="coverage-chip-row">' +
         (unvisited.length ? unvisited.map(function(c){
@@ -1177,7 +1094,7 @@
       if(state.techFilter !== "all" && state.techFilter !== t.id) return;
       var bucket = byTech[t.id] || {};
       var visited = [], pending = [];
-      CLIENTS.forEach(function(client){
+      shownClients.forEach(function(client){
         var entry = bucket[client];
         if(entry && entry.been){
           visited.push('<span class="coverage-chip visited">'+escapeHtml(client)+
@@ -1194,7 +1111,7 @@
       card.innerHTML =
         '<div class="coverage-tech-head">' +
           '<span class="tech-chip" style="background:'+t.color+'">'+escapeHtml(t.name)+'</span>' +
-          '<span class="coverage-ratio">'+visited.length+' de '+CLIENTS.length+' clientes</span>' +
+          '<span class="coverage-ratio">'+visited.length+' de '+shownClients.length+' clientes</span>' +
         '</div>' +
         '<div class="coverage-section-title">✅ Já esteve em</div>' +
         '<div class="coverage-chip-row">'+(visited.length? visited.join("") : '<span class="coverage-empty">Nenhum cliente ainda</span>')+'</div>' +
@@ -1217,7 +1134,6 @@
     else if(state.view==="weekly") renderWeekly(app);
     else if(state.view==="monthly") renderMonthly(app);
     else if(state.view==="list") renderList(app);
-    else if(state.view==="kanban") renderKanban(app);
     else if(state.view==="coverage") renderCoverage(app);
   }
 
