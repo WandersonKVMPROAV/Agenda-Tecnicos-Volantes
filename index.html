@@ -1139,14 +1139,14 @@
     unvCard.style.borderColor = "var(--gold)";
     unvCard.innerHTML =
       '<div class="coverage-tech-head">' +
-        '<span style="font-family:\'Space Grotesk\',sans-serif;font-weight:700;font-size:16px;">Clientes ainda sem visita</span>' +
+        '<span style="font-family:\'Space Grotesk\',sans-serif;font-weight:700;font-size:16px;">Clientes sem cobertura</span>' +
         '<span class="coverage-ratio">'+unvisited.length+' de '+CLIENTS.length+' clientes</span>' +
       '</div>' +
       '<div class="coverage-chip-row">' +
         (unvisited.length ? unvisited.map(function(c){
           return scheduledFirst[c]
             ? '<span class="coverage-chip scheduled">'+escapeHtml(c)+'<small>🕓 agendado para '+fmtDD_MM(scheduledFirst[c])+'</small></span>'
-            : '<span class="coverage-chip pending">'+escapeHtml(c)+'<small>sem visita</small></span>';
+            : '<span class="coverage-chip pending">'+escapeHtml(c)+'<small>sem cobertura</small></span>';
         }).join("") : '<span class="coverage-empty">Todos os clientes já foram visitados</span>') +
       '</div>';
     container.appendChild(unvCard);
