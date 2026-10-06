@@ -574,7 +574,7 @@
 
   var TECHNICIANS = [
     {id:"t1", name:"Raul Alves", color:"#3F6FB0"},
-    {id:"t2", name:"Pedro Henrique (inativo)", color:"#B0623F"},
+    {id:"t2", name:"Pedro Henrique (inativo)", color:"#B0623F", inactive:true},
     {id:"t3", name:"Tiago Moure", color:"#598C3F"},
     {id:"t4", name:"Kenneth Levi", color:"#A34E86"},
     {id:"t5", name:"Johann Bittenbinder", color:"#8A6D3F"}
@@ -719,6 +719,7 @@
     var sel = document.getElementById("techFilter");
     var opts = ['<option value="all">Todos os técnicos</option>'];
     state.technicians.forEach(function(t){
+      if(t.inactive) return; // técnico inativo não aparece nos filtros (histórico continua nas telas)
       opts.push('<option value="'+t.id+'"'+(state.techFilter===t.id?" selected":"")+'>'+escapeHtml(t.name)+'</option>');
     });
     sel.innerHTML = opts.join("");
