@@ -1141,6 +1141,7 @@
     wrap.className = "coverage-wrap";
 
     state.technicians.forEach(function(t){
+      if(t.inactive) return; // técnico inativo fora do planejamento de cobertura
       if(state.techFilter !== "all" && state.techFilter !== t.id) return;
       var bucket = byTech[t.id] || {};
       var visited = [], pending = [];
@@ -1192,9 +1193,11 @@
   var overlay = document.getElementById("overlay");
   var form = document.getElementById("activityForm");
 
-  function populateTechSelect(){
+  function populateTechSelect(keepId){
     var sel = document.getElementById("f-tech");
-    sel.innerHTML = state.technicians.map(function(t){ return '<option value="'+t.id+'">'+escapeHtml(t.name)+'</option>'; }).join("");
+    // técnico inativo só aparece se for o dono do período que está sendo editado
+    sel.innerHTML = state.technicians.filter(function(t){ return !t.inactive || t.id===keepId; })
+      .map(function(t){ return '<option value="'+t.id+'">'+escapeHtml(t.name)+'</option>'; }).join("");
   }
   function populateClientList(){
     document.getElementById("clientList").innerHTML = CLIENTS.map(function(c){ return '<option value="'+escapeHtml(c)+'">'; }).join("");
@@ -1232,7 +1235,8 @@
     document.getElementById("detailBody").style.display = "none";
     document.getElementById("detailActions").style.display = "none";
     document.getElementById("activityForm").style.display = "block";
-    populateTechSelect();
+    var editing = id ? state.assignments.find(function(x){ return x.id===id; }) : null;
+    populateTechSelect(editing ? editing.techId : null);
     populateClientList();
     document.getElementById("btnDelete").style.display = id ? "inline-flex":"none";
     if(id){
