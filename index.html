@@ -516,9 +516,27 @@
   .tv-stat .u{ font-size:22px; color:#8B9A9E; }
   .tv-bar{ flex:1; height:16px; border-radius:8px; background:#283134; display:flex; overflow:hidden; min-width:120px; }
   .tv-bar i{ display:block; height:100%; }
+
+  /* ---------- Menu lateral recolhível ---------- */
+  body.sidebar-hidden .sidebar{ display:none; }
+  body.sidebar-hidden .main-topbar{ padding-left:58px; }
+  body.resumo-fit .main-topbar{ display:none; }
+  #sidebarToggle{
+    position:fixed; left:8px; top:calc(var(--banner-h,0px) + 12px); z-index:60;
+    width:36px; height:36px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
+    background:var(--navy); color:#fff; font-size:18px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+  #sidebarToggle:hover{ background:var(--teal); }
+  body.resumo-fit #sidebarToggle{ top:calc(var(--banner-h,0px) + 5px); width:32px; height:32px; font-size:16px; opacity:.85; }
+  body:not(.sidebar-hidden) #sidebarToggle{ display:none; }
+  body.tv-mode #sidebarToggle{ display:none !important; }
+  .sidebar-hide-btn{ margin-top:10px; border-top:1px solid rgba(255,255,255,.14); border-radius:0 0 10px 10px; padding-top:14px; }
 </style>
 </head>
 <body>
+
+<button id="sidebarToggle" type="button" title="Mostrar menu" aria-label="Mostrar menu">☰</button>
 
 <div class="banner" id="protoBanner"></div>
 
@@ -532,6 +550,7 @@
       </div>
     </div>
     <nav class="sidebar-nav" id="sidebarNav" role="tablist" aria-label="Modo de visualização"></nav>
+    <button class="sidebar-nav-item sidebar-hide-btn" id="sidebarHide" type="button"><span class="icon">‹</span><span>Ocultar menu</span></button>
   </aside>
 
   <div class="main-col">
@@ -1086,11 +1105,6 @@
         '<div class="tv-bar">'+seg(doneN,"#4C8B6E")+seg(andamentoN,"#D9A04B")+seg(provN,"#6B5CA5")+'</div>' +
       '</div>';
 
-    var note = document.createElement("div");
-    note.className = "tv-note";
-    note.innerHTML = '<span>Tela em formato 16:9 para TV / painel de avisos.</span>' +
-      '<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="'+window.location.pathname+'?tv=1">📺 Abrir em tela cheia (TV)</a>';
-    container.appendChild(note);
 
     var vp = document.createElement("div");
     vp.className = "tv-viewport"; vp.id = "tvViewport";
@@ -1106,7 +1120,7 @@
     document.documentElement.style.setProperty("--banner-h", (bn ? bn.offsetHeight : 0)+"px");
     if(!TV_MODE){
       var offTop = vp.getBoundingClientRect().top + (window.pageYOffset||0);
-      vp.style.height = Math.max(260, window.innerHeight - offTop - 22) + "px";
+      vp.style.height = Math.max(260, window.innerHeight - offTop - 10) + "px";
     }
     var s = Math.min(vp.clientWidth/1920, vp.clientHeight/1080);
     if(!(s > 0)) return;
@@ -1406,7 +1420,7 @@
     app.innerHTML = "";
     app.style.width = (state.view==="dashboard") ? "100%" : "";
     app.style.maxWidth = (state.view==="dashboard") ? "none" : "";
-    app.style.paddingBottom = (state.view==="dashboard") ? "12px" : "";
+    app.style.padding = (state.view==="dashboard") ? "8px" : "";
     document.body.classList.toggle("resumo-fit", state.view==="dashboard");
     if(state.view==="dashboard") renderSummary(app);
     else if(state.view==="daily") renderDaily(app);
@@ -1574,6 +1588,10 @@
     }
   }
 
+  function setSidebarHidden(h){ document.body.classList.toggle("sidebar-hidden", h); fitTvStage(); }
+  document.getElementById("sidebarToggle").onclick = function(){ setSidebarHidden(false); };
+  document.getElementById("sidebarHide").onclick = function(){ setSidebarHidden(true); };
+  document.body.classList.add("sidebar-hidden"); // a tela inicial começa com o menu lateral oculto
   if(TV_MODE){ document.body.classList.add("tv-mode"); state.view = "dashboard"; }
   renderAll();
 
