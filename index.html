@@ -777,7 +777,7 @@
 
   /* ============ Top bar ============ */
   var VIEWS = [
-    {id:"dashboard", label:"Resumo", icon:"📺"},
+    {id:"dashboard", label:"Início", icon:"🏠"},
     {id:"daily", label:"Diária", icon:"📅"},
     {id:"weekly", label:"Semanal", icon:"🗓️"},
     {id:"monthly", label:"Mensal", icon:"📆"},
@@ -1418,11 +1418,13 @@
     renderFilters();
     var app = document.getElementById("app");
     app.innerHTML = "";
-    app.style.width = (state.view==="dashboard") ? "100%" : "";
-    app.style.maxWidth = (state.view==="dashboard") ? "none" : "";
-    app.style.padding = (state.view==="dashboard") ? "8px" : "";
-    document.body.classList.toggle("resumo-fit", state.view==="dashboard");
-    if(state.view==="dashboard") renderSummary(app);
+    // O Resumo 16:9 (renderSummary) fica só no link de TV (?tv=1); a tela Início do app é o painel original.
+    var tvDash = TV_MODE && state.view==="dashboard";
+    app.style.width = tvDash ? "100%" : "";
+    app.style.maxWidth = tvDash ? "none" : "";
+    app.style.padding = tvDash ? "8px" : "";
+    document.body.classList.toggle("resumo-fit", tvDash);
+    if(state.view==="dashboard"){ if(TV_MODE) renderSummary(app); else renderDashboard(app); }
     else if(state.view==="daily") renderDaily(app);
     else if(state.view==="weekly") renderWeekly(app);
     else if(state.view==="monthly") renderMonthly(app);
@@ -1591,7 +1593,6 @@
   function setSidebarHidden(h){ document.body.classList.toggle("sidebar-hidden", h); fitTvStage(); }
   document.getElementById("sidebarToggle").onclick = function(){ setSidebarHidden(false); };
   document.getElementById("sidebarHide").onclick = function(){ setSidebarHidden(true); };
-  document.body.classList.add("sidebar-hidden"); // a tela inicial começa com o menu lateral oculto
   if(TV_MODE){ document.body.classList.add("tv-mode"); state.view = "dashboard"; }
   renderAll();
 
