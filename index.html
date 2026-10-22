@@ -75,7 +75,7 @@
   }
   .sidebar-nav-item:hover{ background:rgba(255,255,255,.07); color:#fff; }
   .sidebar-nav-item.active{ background:var(--teal); color:#fff; }
-  .sidebar-nav-item .icon{ font-size:15px; width:18px; text-align:center; flex:none; }
+  .sidebar-nav-item .icon{ display:inline-flex; align-items:center; justify-content:center; font-size:15px; width:18px; text-align:center; flex:none; }
 
   .main-col{ flex:1; min-width:0; display:flex; flex-direction:column; }
   .main-topbar{
@@ -297,6 +297,13 @@
   .ar-main .a-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
   .addr-line{font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.3;}
   .addr-line .pin{opacity:.8;}
+  .ico{ width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:-.16em; flex:none; }
+  .sidebar-nav-item .icon .ico{ width:17px; height:17px; vertical-align:middle; }
+  .coverage-tag .ico{ margin-right:2px; }
+  .a-hours{ display:flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; color:var(--text); margin-top:1px; white-space:nowrap; }
+  .week-chip .a-hours{ font-size:11.5px; font-weight:600; color:var(--text-muted); margin-top:2px; }
+  .tv-hr{ display:block; font-size:16px; font-weight:500; color:#8B9A9E; margin-top:2px; text-transform:none; }
+  .dash-stat-icon{ color:#58B9C6; }
   .tech-chip{
     display:inline-flex; align-items:center; gap:6px;
     font-family:'Space Grotesk',sans-serif; font-size:14.5px; font-weight:700; color:#fff;
@@ -536,7 +543,7 @@
 </head>
 <body>
 
-<button id="sidebarToggle" type="button" title="Mostrar menu" aria-label="Mostrar menu">☰</button>
+<button id="sidebarToggle" type="button" title="Mostrar menu" aria-label="Mostrar menu"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 
 <div class="banner" id="protoBanner"></div>
 
@@ -550,7 +557,7 @@
       </div>
     </div>
     <nav class="sidebar-nav" id="sidebarNav" role="tablist" aria-label="Modo de visualização"></nav>
-    <button class="sidebar-nav-item sidebar-hide-btn" id="sidebarHide" type="button"><span class="icon">‹</span><span>Ocultar menu</span></button>
+    <button class="sidebar-nav-item sidebar-hide-btn" id="sidebarHide" type="button"><span class="icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span><span>Ocultar menu</span></button>
   </aside>
 
   <div class="main-col">
@@ -560,7 +567,7 @@
       <select class="filter-select" id="clientFilter" aria-label="Filtrar por cliente"></select>
       <select class="filter-select" id="statusFilterSelect" aria-label="Filtrar por status"></select>
       <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-ghost" id="btnExport" title="Gera um arquivo .html só leitura, com os dados atuais, para enviar aos técnicos">⬇ Exportar para técnicos</button>
+        <button class="btn btn-ghost" id="btnExport" title="Gera um arquivo .html só leitura, com os dados atuais, para enviar aos técnicos"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Exportar para técnicos</button>
         <button class="btn btn-primary" id="btnNewActivity">+ Novo período</button>
       </div>
     </div>
@@ -618,11 +625,16 @@
           <option value="falta">Falta</option>
           <option value="ferias">Férias</option>
           <option value="treinamento">Treinamento</option>
+          <option value="acompanhamento">Acompanhamento</option>
         </select>
       </div>
       <div class="field">
         <label for="f-responsible">Responsável</label>
         <input id="f-responsible" placeholder="Ex.: Adriely">
+      </div>
+      <div class="field">
+        <label for="f-horario">Horário de atuação (opcional)</label>
+        <input id="f-horario" placeholder="Ex.: 08:00 às 18:00">
       </div>
       <div class="field">
         <label for="f-notes">Observações</label>
@@ -655,7 +667,9 @@
     {id:"t3", name:"Tiago Moure", color:"#598C3F"},
     {id:"t4", name:"Kenneth Levi", color:"#A34E86"},
     {id:"t5", name:"Johann Bittenbinder", color:"#8A6D3F"},
-    {id:"t6", name:"Vinicius", color:"#D1527A"}
+    {id:"t6", name:"Vinicius", color:"#D1527A"},
+    {id:"t7", name:"Beatriz Bertola", color:"#3AA0D8"},
+    {id:"t8", name:"Mauricio Marchi", color:"#B8A12E"}
   ];
 
   var CLIENTS = [
@@ -690,8 +704,10 @@
   var STATUS_ORDER = ["disponivel","andamento","finalizado","provisionado"];
   var STATUS_COLOR = {disponivel:"var(--sage)", andamento:"var(--gold)", finalizado:"var(--teal)", provisionado:"var(--plum)"};
 
-  var COVERAGE_LABELS = {atestado:"Atestado", dayoff:"Dayoff", falta:"Falta", ferias:"Férias", treinamento:"Treinamento"};
-  var COVERAGE_ICON = {atestado:"🩺", dayoff:"🌙", falta:"⚠️", ferias:"🌴", treinamento:"🎓"};
+  var ICON_PATHS = {"home": "<path d=\"M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z\"/>", "calendar": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/>", "calendar-range": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18M8 14h8M8 17.5h5\"/>", "calendar-days": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01\"/>", "list": "<path d=\"M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01\"/>", "pin": "<path d=\"M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>", "activity": "<path d=\"M22 12h-4l-3 9L9 3l-3 9H2\"/>", "moon": "<path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z\"/>", "alert": "<path d=\"m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z\"/><path d=\"M12 9v4M12 17h.01\"/>", "umbrella": "<path d=\"M22 12a10 10 0 0 0-20 0z\"/><path d=\"M12 12v8a2 2 0 0 0 4 0M12 2v1\"/>", "cap": "<path d=\"M22 10 12 5 2 10l10 5z\"/><path d=\"M6 12v5c3 3 9 3 12 0v-5M22 10v6\"/>", "eye": "<path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "inbox": "<path d=\"M22 12h-6l-2 3h-4l-2-3H2\"/><path d=\"M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "check-circle": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8.5 12.5 2.5 2.5 4.5-5\"/>", "circle-dashed": "<circle cx=\"12\" cy=\"12\" r=\"9\" stroke-dasharray=\"3 3\"/>", "download": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3\"/>", "menu": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>", "skip-forward": "<path d=\"m5 4 10 8-10 8z\"/><path d=\"M19 5v14\"/>", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8\"/>", "trending": "<path d=\"m22 7-8.5 8.5-5-5L2 17\"/><path d=\"M16 7h6v6\"/>", "building": "<rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"/><path d=\"M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01\"/>", "wrench": "<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z\"/>", "user-check": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"m16 11 2 2 4-4\"/>", "clipboard": "<rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 12h6M9 16h4\"/>", "pencil": "<path d=\"M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z\"/>"};
+  function ic(n){ return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">'+ICON_PATHS[n]+'</svg>'; }
+  var COVERAGE_LABELS = {atestado:"Atestado", dayoff:"Dayoff", falta:"Falta", ferias:"Férias", treinamento:"Treinamento", acompanhamento:"Acompanhamento"};
+  var COVERAGE_ICON = {atestado:ic("activity"), dayoff:ic("moon"), falta:ic("alert"), ferias:ic("umbrella"), treinamento:ic("cap"), acompanhamento:ic("eye")};
 
   var WEEKDAY_NAMES = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
   var MONTH_NAMES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
@@ -705,7 +721,7 @@
   }
   var T = todayStr();
 
-  var DEFAULT_ASSIGNMENTS = /*ASSIGNMENTS_JSON_START*/[{"id": "c1", "techId": "t3", "client": "Santander", "site": "Farol", "start": "2026-08-13", "end": "2026-09-02", "status": "finalizado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Luiza Zichinelli"}, {"id": "c2", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-08-13", "end": "2026-09-05", "status": "finalizado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Kelvin Camilo"}, {"id": "c3", "techId": "t3", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-09-03", "end": "2026-09-18", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC"}, {"id": "c4", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-09-08", "end": "2026-09-08", "status": "finalizado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Cobertura dayoff Maick Lenin"}, {"id": "c5", "techId": "t1", "client": "Porto Seguros", "site": "", "start": "2026-08-13", "end": "2026-08-28", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Porto"}, {"id": "c6", "techId": "t1", "client": "Itaú PADs", "site": "", "start": "2026-08-31", "end": "2026-09-11", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Itaú Pads"}, {"id": "c7", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-09-09", "end": "2026-09-11", "status": "finalizado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento de Brigadista — Cobertura de posição"}, {"id": "c8", "techId": "t1", "client": "Santander", "site": "Sede", "start": "2026-09-14", "end": "2026-09-18", "status": "finalizado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Santander"}, {"id": "c9", "techId": "t1", "client": "Santander", "site": "Sede", "start": "2026-10-06", "end": "2026-10-30", "status": "andamento", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Guilherme de Campos"}, {"id": "c10", "techId": "t2", "client": "Porto Seguros", "site": "", "start": "2026-08-13", "end": "2026-08-28", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Porto"}, {"id": "c11", "techId": "t2", "client": "P&G SP", "site": "", "start": "2026-08-31", "end": "2026-09-11", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação P&G SP"}, {"id": "c12", "techId": "t2", "client": "P&G SP", "site": "", "start": "2026-09-14", "end": "2026-09-27", "status": "finalizado", "coverage": "falta", "responsible": "Wanderson", "notes": "Substituição Sabrina Santos"}, {"id": "c13", "techId": "t5", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-08-13", "end": "2026-08-28", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC"}, {"id": "c14", "techId": "t4", "client": "Itaú Atacado - BBA", "site": "", "start": "2026-09-14", "end": "2026-09-24", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú BBA"}, {"id": "c15", "techId": "t5", "client": "Itaú Varejo - CTO", "site": "", "start": "2026-08-31", "end": "2026-09-25", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Itaú CTO"}, {"id": "c16", "techId": "t1", "client": "Santander", "site": "Sede", "start": "2026-09-21", "end": "2026-10-04", "status": "andamento", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Diego Camargo"}, {"id": "c17", "techId": "t3", "client": "Santander", "site": "GD", "start": "2026-09-21", "end": "2026-09-21", "status": "finalizado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Cobertura dayoff Davi Trindade"}, {"id": "c18", "techId": "t3", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-10-05", "end": "2026-11-06", "status": "andamento", "coverage": "ferias", "responsible": "Willian", "notes": "Férias de Maurício"}, {"id": "c19", "techId": "t5", "client": "Santander", "site": "Radar", "start": "2026-09-28", "end": "2026-10-09", "status": "andamento", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Santander"}, {"id": "c20", "techId": "t3", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-09-22", "end": "2026-10-02", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC - Auditório AÇO"}, {"id": "c21", "techId": "t2", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-09-28", "end": "2026-10-02", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC"}, {"id": "c23", "techId": "t4", "client": "P&G SP", "site": "", "start": "2026-09-28", "end": "2026-10-09", "status": "andamento", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação P&G SP"}, {"id": "c24", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-09-25", "end": "2026-09-25", "status": "finalizado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Dayoff - Luis Alves"}, {"id": "c25", "techId": "t5", "client": "Santander", "site": "Radar", "start": "2026-10-13", "end": "2026-10-13", "status": "provisionado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Dayoff - Charles Costa"}, {"id": "c26", "techId": "t1", "client": "Itaú PADs", "site": "BFC", "start": "2026-10-05", "end": "2026-10-05", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Cobertura técnica - prédio do BFC"}, {"techId": "t4", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-10-13", "end": "2026-10-23", "status": "provisionado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação CEIC", "id": "c27"}, {"techId": "t4", "client": "Banco BV", "site": "", "start": "2026-10-26", "end": "2026-11-20", "status": "provisionado", "coverage": "ferias", "responsible": "Wanderson", "notes": "Férias Hector", "id": "c28"}, {"techId": "t3", "client": "Santander", "site": "Radar", "start": "2026-11-09", "end": "2026-11-22", "status": "provisionado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias Charles", "id": "c29"}, {"techId": "t4", "client": "Banco BV", "site": "", "start": "2026-12-14", "end": "2026-12-31", "status": "provisionado", "coverage": "ferias", "responsible": "Wanderson", "notes": "Férias Tainá", "id": "c30"}, {"techId": "t5", "client": "Porto Seguros", "site": "", "start": "2026-10-14", "end": "2026-10-23", "status": "provisionado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Porto", "id": "c31"}, {"techId": "t1", "client": "Ouribank", "site": "", "start": "2026-11-03", "end": "2026-11-06", "status": "provisionado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Ouribank", "id": "c32"}, {"techId": "t6", "client": "Santander", "site": "Sede", "start": "2026-10-14", "end": "2026-10-30", "status": "provisionado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Porto", "id": "c33"}, {"techId": "t6", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-11-02", "end": "2026-11-06", "status": "provisionado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Porto", "id": "c34"}, {"techId": "t6", "client": "Santander", "site": "Farol", "start": "2026-11-09", "end": "2026-11-20", "status": "provisionado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Santander", "id": "c35"}, {"techId": "t6", "client": "Santander", "site": "Farol", "start": "2026-11-23", "end": "2026-12-22", "status": "provisionado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias Maick", "id": "c36"}]/*ASSIGNMENTS_JSON_END*/;
+  var DEFAULT_ASSIGNMENTS = /*ASSIGNMENTS_JSON_START*/[{"id": "c1", "techId": "t3", "client": "Santander", "site": "Farol", "start": "2026-08-13", "end": "2026-09-02", "status": "finalizado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Luiza Zichinelli"}, {"id": "c2", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-08-13", "end": "2026-09-05", "status": "finalizado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Kelvin Camilo"}, {"id": "c3", "techId": "t3", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-09-03", "end": "2026-09-18", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC"}, {"id": "c4", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-09-08", "end": "2026-09-08", "status": "finalizado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Cobertura dayoff Maick Lenin"}, {"id": "c5", "techId": "t1", "client": "Porto Seguros", "site": "", "start": "2026-08-13", "end": "2026-08-28", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Porto"}, {"id": "c6", "techId": "t1", "client": "Itaú PADs", "site": "", "start": "2026-08-31", "end": "2026-09-11", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Itaú Pads"}, {"id": "c7", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-09-09", "end": "2026-09-11", "status": "finalizado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento de Brigadista — Cobertura de posição"}, {"id": "c8", "techId": "t1", "client": "Santander", "site": "Sede", "start": "2026-09-14", "end": "2026-09-18", "status": "finalizado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Santander"}, {"id": "c9", "techId": "t1", "client": "Santander", "site": "Sede", "start": "2026-10-06", "end": "2026-10-15", "status": "andamento", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Guilherme de Campos"}, {"id": "c10", "techId": "t2", "client": "Porto Seguros", "site": "", "start": "2026-08-13", "end": "2026-08-28", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Porto"}, {"id": "c11", "techId": "t2", "client": "P&G SP", "site": "", "start": "2026-08-31", "end": "2026-09-11", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação P&G SP"}, {"id": "c12", "techId": "t2", "client": "P&G SP", "site": "", "start": "2026-09-14", "end": "2026-09-27", "status": "finalizado", "coverage": "falta", "responsible": "Wanderson", "notes": "Substituição Sabrina Santos"}, {"id": "c13", "techId": "t5", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-08-13", "end": "2026-08-28", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC"}, {"id": "c14", "techId": "t4", "client": "Itaú Atacado - BBA", "site": "", "start": "2026-09-14", "end": "2026-09-24", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú BBA"}, {"id": "c15", "techId": "t5", "client": "Itaú Varejo - CTO", "site": "", "start": "2026-08-31", "end": "2026-09-25", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Itaú CTO"}, {"id": "c16", "techId": "t1", "client": "Santander", "site": "Sede", "start": "2026-09-21", "end": "2026-10-04", "status": "andamento", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias de Diego Camargo"}, {"id": "c17", "techId": "t3", "client": "Santander", "site": "GD", "start": "2026-09-21", "end": "2026-09-21", "status": "finalizado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Cobertura dayoff Davi Trindade"}, {"id": "c18", "techId": "t3", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-10-05", "end": "2026-11-06", "status": "andamento", "coverage": "ferias", "responsible": "Willian", "notes": "Férias de Maurício"}, {"id": "c19", "techId": "t5", "client": "Santander", "site": "Radar", "start": "2026-09-28", "end": "2026-10-09", "status": "andamento", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Santander"}, {"id": "c20", "techId": "t3", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-09-22", "end": "2026-10-02", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC - Auditório AÇO"}, {"id": "c21", "techId": "t2", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-09-28", "end": "2026-10-02", "status": "finalizado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Itaú CEIC"}, {"id": "c23", "techId": "t4", "client": "P&G SP", "site": "", "start": "2026-09-28", "end": "2026-10-09", "status": "andamento", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação P&G SP"}, {"id": "c24", "techId": "t4", "client": "Santander", "site": "Sede", "start": "2026-09-25", "end": "2026-09-25", "status": "finalizado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Dayoff - Luis Alves"}, {"id": "c25", "techId": "t5", "client": "Santander", "site": "Radar", "start": "2026-10-13", "end": "2026-10-13", "status": "provisionado", "coverage": "dayoff", "responsible": "Adriely", "notes": "Dayoff - Charles Costa"}, {"id": "c26", "techId": "t1", "client": "Itaú PADs", "site": "BFC", "start": "2026-10-05", "end": "2026-10-05", "status": "finalizado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Cobertura técnica - prédio do BFC"}, {"techId": "t4", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-10-13", "end": "2026-10-23", "status": "provisionado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação CEIC", "id": "c27"}, {"techId": "t4", "client": "Banco BV", "site": "", "start": "2026-10-26", "end": "2026-11-20", "status": "provisionado", "coverage": "ferias", "responsible": "Wanderson", "notes": "Férias Hector", "id": "c28"}, {"techId": "t3", "client": "Santander", "site": "Radar", "start": "2026-11-09", "end": "2026-11-22", "status": "provisionado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias Charles", "id": "c29"}, {"techId": "t4", "client": "Banco BV", "site": "", "start": "2026-12-14", "end": "2026-12-31", "status": "provisionado", "coverage": "ferias", "responsible": "Wanderson", "notes": "Férias Tainá", "id": "c30"}, {"techId": "t5", "client": "Porto Seguros", "site": "", "start": "2026-10-14", "end": "2026-10-23", "status": "provisionado", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Porto", "id": "c31"}, {"techId": "t1", "client": "Ouribank", "site": "", "start": "2026-11-03", "end": "2026-11-06", "status": "provisionado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Ouribank", "id": "c32"}, {"techId": "t6", "client": "Santander", "site": "Sede", "start": "2026-10-14", "end": "2026-10-30", "status": "provisionado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Porto", "id": "c33"}, {"techId": "t6", "client": "Itaú Varejo - CEIC", "site": "", "start": "2026-11-02", "end": "2026-11-06", "status": "provisionado", "coverage": "treinamento", "responsible": "Willian", "notes": "Treinamento Operação Porto", "id": "c34"}, {"techId": "t6", "client": "Santander", "site": "Farol", "start": "2026-11-09", "end": "2026-11-20", "status": "provisionado", "coverage": "treinamento", "responsible": "Adriely", "notes": "Treinamento Operação Santander", "id": "c35"}, {"techId": "t6", "client": "Santander", "site": "Farol", "start": "2026-11-23", "end": "2026-12-22", "status": "provisionado", "coverage": "ferias", "responsible": "Adriely", "notes": "Férias Maick", "id": "c36"}, {"id": "c37", "techId": "t1", "client": "Itaú PADs", "site": "", "start": "2026-10-16", "end": "2026-10-30", "status": "provisionado", "coverage": "acompanhamento", "responsible": "Wanderson", "notes": "Acompanhamento de atividades"}, {"id": "c38", "techId": "t7", "client": "Itaú Varejo - CTO", "site": "", "start": "2026-10-22", "end": "2026-11-06", "status": "andamento", "coverage": "treinamento", "responsible": "Wanderson", "notes": "Treinamento Operação Itaú CTO", "horario": "08:00 às 18:00"}, {"id": "c39", "techId": "t8", "client": "Santander", "site": "Farol", "start": "2026-10-22", "end": "2026-11-06", "status": "andamento", "coverage": "treinamento", "responsible": "Adriely", "notes": "Cobertura técnica - Thomas"}]/*ASSIGNMENTS_JSON_END*/;
 
   var state = loadState();
   state.view = "dashboard";
@@ -777,12 +793,12 @@
 
   /* ============ Top bar ============ */
   var VIEWS = [
-    {id:"dashboard", label:"Início", icon:"🏠"},
-    {id:"daily", label:"Diária", icon:"📅"},
-    {id:"weekly", label:"Semanal", icon:"🗓️"},
-    {id:"monthly", label:"Mensal", icon:"📆"},
-    {id:"list", label:"Lista", icon:"📋"},
-    {id:"coverage", label:"Cobertura", icon:"📍"}
+    {id:"dashboard", label:"Início", icon:ic("home")},
+    {id:"daily", label:"Diária", icon:ic("calendar")},
+    {id:"weekly", label:"Semanal", icon:ic("calendar-range")},
+    {id:"monthly", label:"Mensal", icon:ic("calendar-days")},
+    {id:"list", label:"Lista", icon:ic("list")},
+    {id:"coverage", label:"Cobertura", icon:ic("pin")}
   ];
 
   function renderTabs(){
@@ -819,7 +835,7 @@
     var covSel = document.getElementById("coverageFilter");
     var covOpts = ['<option value="all">Todos os tipos</option>'];
     Object.keys(COVERAGE_LABELS).forEach(function(k){
-      covOpts.push('<option value="'+k+'"'+(state.coverageFilter===k?" selected":"")+'>'+COVERAGE_ICON[k]+' '+COVERAGE_LABELS[k]+'</option>');
+      covOpts.push('<option value="'+k+'"'+(state.coverageFilter===k?" selected":"")+'>'+COVERAGE_LABELS[k]+'</option>');
     });
     covSel.innerHTML = covOpts.join("");
     covSel.value = state.coverageFilter;
@@ -859,6 +875,9 @@
     });
   }
 
+  // Horário de atuação: só é exibido quando o período tem horário informado
+  function hrHtml(a){ return a.horario ? '<div class="a-hours">'+ic('clock')+' '+escapeHtml(a.horario)+'</div>' : ''; }
+
   function assignmentRowHtml(a){
     var tech = techById(a.techId);
     var addr = getAddress(a);
@@ -866,11 +885,12 @@
       '<div class="ar-when">' +
         '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span>' +
         '<div class="ar-period">'+fmtDD_MM(a.start)+' – '+fmtDD_MM(a.end)+'<small>'+(a.start===a.end? '1 dia' : '')+'</small></div>' +
+        hrHtml(a) +
       '</div>' +
       '<div class="ar-main">' +
         '<div class="a-title">'+escapeHtml(clientLabel(a))+'</div>' +
         '<div class="a-meta">Responsável: '+escapeHtml(a.responsible||"—")+(a.notes? ' · '+escapeHtml(a.notes) : '')+'</div>' +
-        (addr ? '<div class="addr-line"><span class="pin">📍</span> '+escapeHtml(addr)+'</div>' : '') +
+        (addr ? '<div class="addr-line"><span class="pin">'+ic('pin')+'</span> '+escapeHtml(addr)+'</div>' : '') +
       '</div>' +
       '<div class="ar-tags">' +
         '<span class="coverage-tag">'+COVERAGE_ICON[a.coverage]+' '+COVERAGE_LABELS[a.coverage]+'</span>' +
@@ -890,6 +910,7 @@
       return '<div class="dash-hero-person" style="background:'+tech.color+'22;">' +
         '<div class="p-name" style="color:#fff;">'+escapeHtml(tech.name)+'</div>' +
         '<div class="p-sub" style="color:var(--text);opacity:.8;">'+escapeHtml(clientLabel(a))+'</div>' +
+        (a.horario ? '<div class="p-sub" style="color:#fff;opacity:.9;">'+ic('clock')+' '+escapeHtml(a.horario)+'</div>' : '') +
       '</div>';
     }).join("");
     return '<div class="dash-hero-card" style="background:linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);">' +
@@ -916,7 +937,7 @@
     } else {
       var noneCard = document.createElement("div");
       noneCard.className = "empty-state";
-      noneCard.innerHTML = '<div class="icon">📭</div>Nada agendado para hoje ou amanhã.';
+      noneCard.innerHTML = '<div class="icon">'+ic('inbox')+'</div>Nada agendado para hoje ou amanhã.';
       container.appendChild(noneCard);
     }
 
@@ -936,10 +957,10 @@
     });
 
     var stats = [
-      {icon:"⏭️", value: upcoming ? fmtDD_MM(upcoming.start)+' · '+clientLabel(upcoming) : "—", label:"Próxima atividade"},
-      {icon:"👥", value: state.technicians.length, label:"Técnicos ativos"},
-      {icon:"📈", value: thisMonthCount, label:"Atividades neste mês"},
-      {icon:"🏢", value: Object.keys(coveredClients).length+' de '+CLIENTS.length, label:"Clientes já cobertos"}
+      {icon:ic("skip-forward"), value: upcoming ? fmtDD_MM(upcoming.start)+' · '+clientLabel(upcoming) : "—", label:"Próxima atividade"},
+      {icon:ic("users"), value: state.technicians.length, label:"Técnicos ativos"},
+      {icon:ic("trending"), value: thisMonthCount, label:"Atividades neste mês"},
+      {icon:ic("building"), value: Object.keys(coveredClients).length+' de '+CLIENTS.length, label:"Clientes já cobertos"}
     ];
 
     var statsRow = document.createElement("div");
@@ -955,7 +976,7 @@
 
 
   /* ============ Resumo TV (16:9) ============ */
-  var TV_COV_COLOR = {treinamento:"#1C7A88", ferias:"#D9A04B", dayoff:"#6B5CA5", falta:"#C1584B", atestado:"#4C8B6E"};
+  var TV_COV_COLOR = {treinamento:"#1C7A88", ferias:"#D9A04B", dayoff:"#6B5CA5", falta:"#C1584B", atestado:"#4C8B6E", acompanhamento:"#3F6FB0"};
   var TV_COV_ORDER = ["treinamento","ferias","dayoff","falta","atestado"];
   var TV_WEEKDAYS = ["Domingo","Segunda-Feira","Terça-Feira","Quarta-Feira","Quinta-Feira","Sexta-Feira","Sábado"];
   var TV_MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -1018,7 +1039,7 @@
       return '<div class="tv-row">' +
         '<div class="tv-pill" style="background:'+(TV_COV_COLOR[a.coverage]||"#1C7A88")+'">'+escapeHtml(COVERAGE_LABELS[a.coverage]||a.coverage)+'</div>' +
         '<div class="tv-who">'+tvNameHtml(techById(a.techId).name)+'</div>' +
-        '<div class="tv-cli">'+escapeHtml(clientLabel(a))+'</div>' +
+        '<div class="tv-cli">'+escapeHtml(clientLabel(a))+(a.horario ? '<span class="tv-hr">'+ic('clock')+' '+escapeHtml(a.horario)+'</span>' : '')+'</div>' +
         '<div class="tv-until">até '+fmtDD_MM(a.end)+'</div>' +
         '<div class="tv-days" style="color:'+col+'">'+left+'d</div>' +
       '</div>';
@@ -1083,10 +1104,10 @@
       '</div>' +
       '<div class="tv-kpis">' +
         '<div class="tv-kpi hero"><div class="tv-big">'+inField+'</div><div class="tv-lab">técnicos em campo '+dayTxt+'<br><b>'+Object.keys(clientsToday).length+'</b> '+(Object.keys(clientsToday).length===1?'cliente atendido':'clientes atendidos')+'</div></div>' +
-        '<div class="tv-kpi"><div class="tv-ico" style="background:#0F3339">🛠️</div><div class="tv-body"><div class="tv-big">'+andamentoN+'</div><div class="tv-lab">em<br>andamento</div></div></div>' +
-        '<div class="tv-kpi"><div class="tv-ico" style="background:#173023">🧑‍🔧</div><div class="tv-body"><div class="tv-big">'+freeCount+'</div><div class="tv-lab">disponíveis<br>'+dayTxt+'</div></div></div>' +
-        '<div class="tv-kpi"><div class="tv-ico" style="background:#251F38">🗓️</div><div class="tv-body"><div class="tv-big">'+provN+'</div><div class="tv-lab">provisionados<br>agendados</div></div></div>' +
-        '<div class="tv-kpi red"><div class="tv-ico" style="background:#4D231F">⚠️</div><div class="tv-body"><div class="tv-big">'+unvisited+'</div><div class="tv-lab">clientes sem<br>cobertura</div></div></div>' +
+        '<div class="tv-kpi"><div class="tv-ico" style="background:#0F3339;color:#4FC3D3">'+ic('wrench')+'</div><div class="tv-body"><div class="tv-big">'+andamentoN+'</div><div class="tv-lab">em<br>andamento</div></div></div>' +
+        '<div class="tv-kpi"><div class="tv-ico" style="background:#173023;color:#6FCF9A">'+ic('user-check')+'</div><div class="tv-body"><div class="tv-big">'+freeCount+'</div><div class="tv-lab">disponíveis<br>'+dayTxt+'</div></div></div>' +
+        '<div class="tv-kpi"><div class="tv-ico" style="background:#251F38;color:#A99BE0">'+ic('calendar-days')+'</div><div class="tv-body"><div class="tv-big">'+provN+'</div><div class="tv-lab">provisionados<br>agendados</div></div></div>' +
+        '<div class="tv-kpi red"><div class="tv-ico" style="background:#4D231F;color:#E5786B">'+ic('alert')+'</div><div class="tv-body"><div class="tv-big">'+unvisited+'</div><div class="tv-lab">clientes sem<br>cobertura</div></div></div>' +
       '</div>' +
       '<div class="tv-stages">'+stagesHtml+'</div>' +
       '<div class="tv-main">' +
@@ -1157,7 +1178,7 @@
     if(acts.length===0){
       var empty = document.createElement("div");
       empty.className = "empty-state";
-      empty.innerHTML = '<div class="icon">📭</div>Nenhum técnico com período ativo nesta data.';
+      empty.innerHTML = '<div class="icon">'+ic('inbox')+'</div>Nenhum técnico com período ativo nesta data.';
       container.appendChild(empty);
     } else {
       var list = document.createElement("div");
@@ -1210,7 +1231,8 @@
           return '<div class="week-chip" style="border-left-color:'+STATUS_COLOR[a.status]+'" data-id="'+a.id+'">' +
             '<span class="a-title">'+escapeHtml(tech.name)+'</span>' +
             '<span class="a-tech">'+COVERAGE_ICON[a.coverage]+' '+escapeHtml(clientLabel(a))+'</span>' +
-            (addr ? '<div class="addr-line"><span class="pin">📍</span> '+escapeHtml(addr)+'</div>' : '') +
+            hrHtml(a) +
+            (addr ? '<div class="addr-line"><span class="pin">'+ic('pin')+'</span> '+escapeHtml(addr)+'</div>' : '') +
           '</div>';
         }).join("");
       grid.appendChild(col);
@@ -1298,7 +1320,7 @@
     if(acts.length===0){
       var empty = document.createElement("div");
       empty.className = "empty-state";
-      empty.innerHTML = '<div class="icon">📭</div>Nenhum período encontrado.';
+      empty.innerHTML = '<div class="icon">'+ic('inbox')+'</div>Nenhum período encontrado.';
       container.appendChild(empty);
       return;
     }
@@ -1351,7 +1373,7 @@
       '<div class="coverage-chip-row">' +
         (unvisited.length ? unvisited.map(function(c){
           return scheduledFirst[c]
-            ? '<span class="coverage-chip scheduled">'+escapeHtml(c)+'<small>🕓 agendado para '+fmtDD_MM(scheduledFirst[c])+'</small></span>'
+            ? '<span class="coverage-chip scheduled">'+escapeHtml(c)+'<small>'+ic('clock')+' agendado para '+fmtDD_MM(scheduledFirst[c])+'</small></span>'
             : '<span class="coverage-chip pending">'+escapeHtml(c)+'<small>sem cobertura</small></span>';
         }).join("") : '<span class="coverage-empty">Todos os clientes já foram visitados</span>') +
       '</div>';
@@ -1389,7 +1411,7 @@
           visited.push('<span class="coverage-chip visited">'+escapeHtml(client)+
             '<small>'+entry.count+'x · até '+fmtDD_MM(entry.lastEnd)+'</small></span>');
         } else if(entry && entry.scheduled){
-          pending.push('<span class="coverage-chip scheduled">'+escapeHtml(client)+'<small>🕓 agendado</small></span>');
+          pending.push('<span class="coverage-chip scheduled">'+escapeHtml(client)+'<small>'+ic('clock')+' agendado</small></span>');
         } else {
           pending.push('<span class="coverage-chip pending">'+escapeHtml(client)+'</span>');
         }
@@ -1402,9 +1424,9 @@
           '<span class="tech-chip" style="background:'+t.color+'">'+escapeHtml(t.name)+'</span>' +
           '<span class="coverage-ratio">'+visited.length+' de '+shownClients.length+' clientes</span>' +
         '</div>' +
-        '<div class="coverage-section-title">✅ Já esteve em</div>' +
+        '<div class="coverage-section-title">'+ic('check-circle')+' Já esteve em</div>' +
         '<div class="coverage-chip-row">'+(visited.length? visited.join("") : '<span class="coverage-empty">Nenhum cliente ainda</span>')+'</div>' +
-        '<div class="coverage-section-title">◻︎ Ainda não esteve</div>' +
+        '<div class="coverage-section-title">'+ic('circle-dashed')+' Ainda não esteve</div>' +
         '<div class="coverage-chip-row">'+(pending.length? pending.join("") : '<span class="coverage-empty">Já passou por todos</span>')+'</div>';
       wrap.appendChild(card);
     });
@@ -1461,13 +1483,14 @@
       '<div class="field"><label>Técnico</label>' +
         '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span></div>' +
       '<div class="field"><label>Cliente</label><div>'+escapeHtml(clientLabel(a))+'</div></div>' +
-      (addr ? '<div class="field"><label>Endereço</label><div>📍 '+escapeHtml(addr)+'</div></div>' : '') +
+      (addr ? '<div class="field"><label>Endereço</label><div>'+ic('pin')+' '+escapeHtml(addr)+'</div></div>' : '') +
       '<div class="field-row">' +
         '<div class="field"><label>Data início</label><div>'+fmtDateLong(a.start)+'</div></div>' +
         '<div class="field"><label>Data fim</label><div>'+fmtDateLong(a.end)+'</div></div>' +
       '</div>' +
       '<div class="field"><label>Status</label><div><span class="status-badge status-'+a.status+'">'+STATUS_LABELS[a.status]+'</span></div></div>' +
       '<div class="field"><label>Tipo de cobertura</label><div><span class="coverage-tag">'+COVERAGE_ICON[a.coverage]+' '+COVERAGE_LABELS[a.coverage]+'</span></div></div>' +
+      (a.horario ? '<div class="field"><label>Horário</label><div>'+ic('clock')+' '+escapeHtml(a.horario)+'</div></div>' : '') +
       '<div class="field"><label>Responsável</label><div>'+escapeHtml(a.responsible||"—")+'</div></div>' +
       '<div class="field"><label>Observações</label><div>'+escapeHtml(a.notes||"—")+'</div></div>';
     overlay.classList.add("open");
@@ -1495,6 +1518,7 @@
       document.getElementById("f-end").value = a.end;
       document.getElementById("f-coverage").value = a.coverage;
       document.getElementById("f-responsible").value = a.responsible||"";
+      document.getElementById("f-horario").value = a.horario||"";
       document.getElementById("f-notes").value = a.notes||"";
     } else {
       state.editingId = null;
@@ -1537,11 +1561,14 @@
       responsible: document.getElementById("f-responsible").value.trim(),
       notes: document.getElementById("f-notes").value.trim()
     };
+    var horarioTxt = document.getElementById("f-horario").value.trim();
+    if(horarioTxt){ data.horario = horarioTxt; }
     if(!data.client || !data.start || !data.end || !data.techId){ return; }
     if(data.end < data.start){ data.end = data.start; }
     if(state.editingId){
       var a = state.assignments.find(function(x){ return x.id===state.editingId; });
       Object.assign(a, data);
+      if(!horarioTxt){ delete a.horario; }
     } else {
       data.id = "c" + Date.now();
       state.assignments.push(data);
@@ -1553,9 +1580,9 @@
   if(READ_ONLY){
     document.getElementById("btnNewActivity").style.display = "none";
     document.getElementById("btnExport").style.display = "none";
-    document.getElementById("protoBanner").innerHTML = '📋 <b>Agenda dos técnicos volantes</b> — consulta apenas. Toque em qualquer período para ver os detalhes completos.';
+    document.getElementById("protoBanner").innerHTML = ic('clipboard')+' <b>Agenda dos técnicos volantes</b> — consulta apenas. Toque em qualquer período para ver os detalhes completos.';
   } else {
-    document.getElementById("protoBanner").innerHTML = '✏️ <b>Modo edição</b> — use "+ Novo período" para adicionar e clique em um card para editar. Quando terminar, use "Exportar para técnicos" para gerar a versão só leitura.';
+    document.getElementById("protoBanner").innerHTML = ic('pencil')+' <b>Modo edição</b> — use "+ Novo período" para adicionar e clique em um card para editar. Quando terminar, use "Exportar para técnicos" para gerar a versão só leitura.';
     document.getElementById("btnExport").addEventListener("click", downloadViewerCopy);
   }
 
@@ -1567,7 +1594,7 @@
       "/*ASSIGNMENTS_JSON_START*/" + newAssignmentsJson + "/*ASSIGNMENTS_JSON_END*/"
     );
     html = html.replace(
-      "var READ_ONLY = /*READ_ONLY_FLAG*/true/*READ_ONLY_FLAG*/;",
+      "var READ_ONLY = /*READ_ONLY_FLAG*/false/*READ_ONLY_FLAG*/;",
       "var READ_ONLY = /*READ_ONLY_FLAG*/true/*READ_ONLY_FLAG*/;"
     );
     return html;
