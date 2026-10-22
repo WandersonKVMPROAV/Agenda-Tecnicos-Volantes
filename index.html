@@ -119,6 +119,22 @@
   .dash-hero-person .p-time{ font-weight:600; color:#fff; display:flex; align-items:center; gap:5px; }
   .dash-hero-person .p-addr{ display:flex; align-items:flex-start; gap:5px; line-height:1.3; font-size:12px; }
   .dash-hero-person .p-addr .ico{ margin-top:2px; }
+  .dash-hero-person{ cursor:pointer; transition:filter .12s ease, box-shadow .12s ease; outline:none; }
+  .dash-hero-person:hover, .dash-hero-person:focus-visible{ filter:brightness(1.18); box-shadow:0 0 0 2px rgba(255,255,255,.35); }
+  .dash-hero-person .p-more{ display:flex; align-items:center; gap:3px; justify-content:flex-end; margin-top:6px; font-size:11.5px; font-weight:700; color:var(--gold); }
+  .week-modal{ max-width:760px; }
+  .wk-head{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .wk-nav{ display:flex; align-items:center; gap:8px; }
+  .wk-nav .nav-round{ width:32px; height:32px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .wk-nav .nav-round:hover{ background:var(--bg); }
+  .wk-range{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px; min-width:150px; text-align:center; }
+  .wk-day{ border:1px solid var(--border); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:9px; background:var(--bg); }
+  .wk-day.is-today{ border-color:var(--teal); box-shadow:0 0 0 2px var(--teal-tint) inset; }
+  .wk-day-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13.5px; margin-bottom:6px; color:var(--date-accent); }
+  .wk-empty{ font-size:12.5px; color:var(--text-muted); font-style:italic; }
+  .wk-item{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; margin-top:6px; }
+  .wk-item-top{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+  .wk-client{ font-weight:700; font-size:13.5px; margin-right:auto; }
   .dash-hero-empty{ font-size:13px; color:rgba(255,255,255,.7); position:relative; }
 
   .dash-stats-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
@@ -581,6 +597,15 @@
   </div>
 </div>
 
+<div class="overlay" id="weekOverlay">
+  <div class="modal week-modal">
+    <div id="weekPanelBody"></div>
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button type="button" class="btn btn-primary" id="weekClose">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay">
   <div class="modal">
     <h3 id="modalTitle">Novo período</h3>
@@ -712,6 +737,9 @@
 
   var ICON_PATHS = {"home": "<path d=\"M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z\"/>", "calendar": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/>", "calendar-range": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18M8 14h8M8 17.5h5\"/>", "calendar-days": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01\"/>", "list": "<path d=\"M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01\"/>", "pin": "<path d=\"M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/>", "activity": "<path d=\"M22 12h-4l-3 9L9 3l-3 9H2\"/>", "moon": "<path d=\"M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z\"/>", "alert": "<path d=\"m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3z\"/><path d=\"M12 9v4M12 17h.01\"/>", "umbrella": "<path d=\"M22 12a10 10 0 0 0-20 0z\"/><path d=\"M12 12v8a2 2 0 0 0 4 0M12 2v1\"/>", "cap": "<path d=\"M22 10 12 5 2 10l10 5z\"/><path d=\"M6 12v5c3 3 9 3 12 0v-5M22 10v6\"/>", "eye": "<path d=\"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "inbox": "<path d=\"M22 12h-6l-2 3h-4l-2-3H2\"/><path d=\"M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "check-circle": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8.5 12.5 2.5 2.5 4.5-5\"/>", "circle-dashed": "<circle cx=\"12\" cy=\"12\" r=\"9\" stroke-dasharray=\"3 3\"/>", "download": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3\"/>", "menu": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>", "skip-forward": "<path d=\"m5 4 10 8-10 8z\"/><path d=\"M19 5v14\"/>", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8\"/>", "trending": "<path d=\"m22 7-8.5 8.5-5-5L2 17\"/><path d=\"M16 7h6v6\"/>", "building": "<rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"/><path d=\"M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01\"/>", "wrench": "<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z\"/>", "user-check": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"m16 11 2 2 4-4\"/>", "clipboard": "<rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 12h6M9 16h4\"/>", "pencil": "<path d=\"M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z\"/>"};
   function ic(n){ return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">'+ICON_PATHS[n]+'</svg>'; }
+  ICON_PATHS['chevron-right']='<path d="m9 18 6-6-6-6"/>';
+  ICON_PATHS['chevron-left']='<path d="m15 18-6-6 6-6"/>';
+  ICON_PATHS['x']='<path d="M18 6 6 18M6 6l12 12"/>';
   var COVERAGE_LABELS = {atestado:"Atestado", dayoff:"Dayoff", falta:"Falta", ferias:"Férias", treinamento:"Treinamento", acompanhamento:"Acompanhamento"};
   var COVERAGE_ICON = {atestado:ic("activity"), dayoff:ic("moon"), falta:ic("alert"), ferias:ic("umbrella"), treinamento:ic("cap"), acompanhamento:ic("eye")};
 
@@ -913,12 +941,13 @@
     var weekday = WEEKDAY_NAMES[d.getDay()];
     var peopleHtml = acts.map(function(a){
       var tech = techById(a.techId);
-      return '<div class="dash-hero-person" style="background:'+tech.color+'22;">' +
+      return '<div class="dash-hero-person" role="button" tabindex="0" title="Ver as atividades da semana" data-tech="'+a.techId+'" data-date="'+dateStr+'" style="background:'+tech.color+'22;">' +
         '<div class="p-name" style="color:#fff;">'+escapeHtml(tech.name)+'</div>' +
         '<div class="p-sub p-client">'+escapeHtml(clientLabel(a))+'</div>' +
         '<div class="p-sub">Responsável: '+escapeHtml(a.responsible||"—")+'</div>' +
         (a.horario ? '<div class="p-sub p-time">'+ic('clock')+' '+escapeHtml(a.horario)+'</div>' : '') +
         (getAddress(a) ? '<div class="p-sub p-addr">'+ic('pin')+' <span>'+escapeHtml(getAddress(a))+'</span></div>' : '') +
+        '<div class="p-more">Ver semana '+ic('chevron-right')+'</div>' +
       '</div>';
     }).join("");
     return '<div class="dash-hero-card" style="background:linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);">' +
@@ -942,6 +971,11 @@
       heroRow.className = "dash-hero-row" + (cards.length===1 ? " single":"");
       heroRow.innerHTML = cards.join("");
       container.appendChild(heroRow);
+      heroRow.querySelectorAll(".dash-hero-person").forEach(function(el){
+        function abrir(){ openWeekPanel(el.getAttribute("data-tech"), el.getAttribute("data-date")); }
+        el.addEventListener("click", abrir);
+        el.addEventListener("keydown", function(e){ if(e.key==="Enter" || e.key===" "){ e.preventDefault(); abrir(); } });
+      });
     } else {
       var noneCard = document.createElement("div");
       noneCard.className = "empty-state";
@@ -1476,6 +1510,56 @@
     document.getElementById("clientList").innerHTML = CLIENTS.map(function(c){ return '<option value="'+escapeHtml(c)+'">'; }).join("");
   }
 
+  /* ---------- Painel semanal de um técnico (abre ao clicar no card da Início) ---------- */
+  var weekPanel = {techId:null, weekStart:null};
+  function openWeekPanel(techId, dateStr){
+    weekPanel.techId = techId;
+    weekPanel.weekStart = startOfWeek(dateStr);
+    renderWeekPanel();
+    document.getElementById("weekOverlay").classList.add("open");
+  }
+  function closeWeekPanel(){ document.getElementById("weekOverlay").classList.remove("open"); }
+  function renderWeekPanel(){
+    var tech = techById(weekPanel.techId);
+    var start = weekPanel.weekStart, end = addDaysToStr(start, 4);
+    var html =
+      '<div class="wk-head">' +
+        '<span class="tech-chip" style="background:'+tech.color+'">'+escapeHtml(tech.name)+'</span>' +
+        '<div class="wk-nav">' +
+          '<button type="button" class="nav-round" id="wkPrev" aria-label="Semana anterior">'+ic('chevron-left')+'</button>' +
+          '<div class="wk-range">Semana de '+fmtDD_MM(start)+' a '+fmtDD_MM(end)+'</div>' +
+          '<button type="button" class="nav-round" id="wkNext" aria-label="Próxima semana">'+ic('chevron-right')+'</button>' +
+        '</div>' +
+      '</div>';
+    for(var i=0;i<5;i++){
+      var day = addDaysToStr(start, i);
+      var d = new Date(day+"T00:00:00");
+      var acts = state.assignments.filter(function(a){ return a.techId===weekPanel.techId && isActiveOn(a, day); })
+        .sort(function(a,b){ return a.start.localeCompare(b.start); });
+      html += '<div class="wk-day'+(day===T?' is-today':'')+'">' +
+        '<div class="wk-day-title">'+WEEKDAY_NAMES[d.getDay()]+', '+fmtDD_MM(day)+(day===T?' · Hoje':'')+'</div>';
+      if(!acts.length){
+        html += '<div class="wk-empty">Sem atividade</div>';
+      } else {
+        html += acts.map(function(a){
+          var addr = getAddress(a);
+          return '<div class="wk-item" style="border-left:4px solid '+STATUS_COLOR[a.status]+'">' +
+            '<div class="wk-item-top"><span class="wk-client">'+escapeHtml(clientLabel(a))+'</span>' +
+              '<span class="coverage-tag">'+COVERAGE_ICON[a.coverage]+' '+COVERAGE_LABELS[a.coverage]+'</span>' +
+              '<span class="status-badge status-'+a.status+'">'+STATUS_LABELS[a.status]+'</span></div>' +
+            '<div class="a-meta">Responsável: '+escapeHtml(a.responsible||"—")+(a.notes? ' · '+escapeHtml(a.notes) : '')+'</div>' +
+            hrHtml(a) +
+            (addr ? '<div class="addr-line"><span class="pin">'+ic('pin')+'</span> '+escapeHtml(addr)+'</div>' : '') +
+          '</div>';
+        }).join("");
+      }
+      html += '</div>';
+    }
+    document.getElementById("weekPanelBody").innerHTML = html;
+    document.getElementById("wkPrev").onclick = function(){ weekPanel.weekStart = addDaysToStr(weekPanel.weekStart,-7); renderWeekPanel(); };
+    document.getElementById("wkNext").onclick = function(){ weekPanel.weekStart = addDaysToStr(weekPanel.weekStart,7); renderWeekPanel(); };
+  }
+
   function openDetailModal(id){
     var a = state.assignments.find(function(x){ return x.id===id; });
     if(!a) return;
@@ -1545,6 +1629,9 @@
   function closeModal(){ overlay.classList.remove("open"); state.editingId = null; }
 
   document.getElementById("btnCloseDetail").onclick = closeModal;
+  document.getElementById("weekClose").onclick = closeWeekPanel;
+  document.getElementById("weekOverlay").addEventListener("click", function(e){ if(e.target===this) closeWeekPanel(); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeWeekPanel(); });
   if(!READ_ONLY) document.getElementById("btnNewActivity").onclick = function(){ openModal(null); };
   document.getElementById("btnCancel").onclick = closeModal;
   overlay.addEventListener("click", function(e){ if(e.target===overlay) closeModal(); });
