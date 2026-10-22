@@ -113,6 +113,12 @@
   }
   .dash-hero-person .p-name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; }
   .dash-hero-person .p-sub{ font-size:11.5px; color:rgba(255,255,255,.75); margin-top:2px; }
+  .dash-hero-person{ min-width:260px; max-width:400px; flex:1 1 260px; }
+  .dash-hero-person .p-sub{ font-size:12.5px; color:rgba(255,255,255,.82); margin-top:3px; }
+  .dash-hero-person .p-client{ font-size:13.5px; font-weight:700; color:#fff; margin-top:4px; }
+  .dash-hero-person .p-time{ font-weight:600; color:#fff; display:flex; align-items:center; gap:5px; }
+  .dash-hero-person .p-addr{ display:flex; align-items:flex-start; gap:5px; line-height:1.3; font-size:12px; }
+  .dash-hero-person .p-addr .ico{ margin-top:2px; }
   .dash-hero-empty{ font-size:13px; color:rgba(255,255,255,.7); position:relative; }
 
   .dash-stats-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
@@ -909,8 +915,10 @@
       var tech = techById(a.techId);
       return '<div class="dash-hero-person" style="background:'+tech.color+'22;">' +
         '<div class="p-name" style="color:#fff;">'+escapeHtml(tech.name)+'</div>' +
-        '<div class="p-sub" style="color:var(--text);opacity:.8;">'+escapeHtml(clientLabel(a))+'</div>' +
-        (a.horario ? '<div class="p-sub" style="color:#fff;opacity:.9;">'+ic('clock')+' '+escapeHtml(a.horario)+'</div>' : '') +
+        '<div class="p-sub p-client">'+escapeHtml(clientLabel(a))+'</div>' +
+        '<div class="p-sub">Responsável: '+escapeHtml(a.responsible||"—")+'</div>' +
+        (a.horario ? '<div class="p-sub p-time">'+ic('clock')+' '+escapeHtml(a.horario)+'</div>' : '') +
+        (getAddress(a) ? '<div class="p-sub p-addr">'+ic('pin')+' <span>'+escapeHtml(getAddress(a))+'</span></div>' : '') +
       '</div>';
     }).join("");
     return '<div class="dash-hero-card" style="background:linear-gradient(135deg, var(--navy) 0%, var(--teal-dark) 100%);">' +
