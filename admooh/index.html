@@ -57,25 +57,30 @@ h3{font:700 32px/1.15 var(--fh);margin:0}
 .kpi .l{font:600 26px var(--f);margin-top:10px}
 .kpi .s{font:500 21px var(--f);color:var(--mut);margin-top:3px}
 .cards{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:24px;min-height:0}
-.tc{padding:22px 28px 20px;display:flex;flex-direction:column;min-width:0;min-height:0;border-left:8px solid var(--tc,var(--nc));overflow:hidden}
+.tc{padding:16px 26px 16px;display:flex;flex-direction:column;justify-content:center;min-width:0;min-height:0;border-left:8px solid var(--tc,var(--nc));overflow:hidden}
 .tc .top{display:flex;align-items:center;gap:14px}
-.tc .top .nm{font-size:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.tc .top .pill{margin-left:auto}
-.tc .cl{font:700 31px/1.15 var(--fh);margin-top:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.tc .meta{font:500 22px var(--f);color:var(--mut);margin-top:6px}
+.tc .top .nm{font-size:32px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tc .top .pill{margin-left:auto;font-size:19px;padding:7px 16px}
+.tc .cl{font:700 28px/1.15 var(--fh);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc .ad{display:flex;align-items:center;gap:7px;font:500 18px/1.25 var(--f);color:var(--mut);opacity:.9;margin-top:3px;min-width:0}
+.tc .ad svg{flex:none;width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tc .ad span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tc .meta{font:500 21px/1.2 var(--f);color:var(--mut);margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tc .meta b{color:var(--txt);font-weight:700}
-.tc .ad{font:500 19px/1.3 var(--f);color:var(--mut);opacity:.85;margin-top:auto;padding-top:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.tc .pr{height:10px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:10px}
-.tc .pr span{display:block;height:100%;border-radius:5px}
+.tc .pr{height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:8px;flex:none}
+.tc .pr span{display:block;height:100%;border-radius:4px}
 .tc.free{border-style:dashed;border-left-style:solid}
-.tc.free .cl{color:var(--teal);font-size:36px}
-.am{padding:22px 28px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.am h3{font-size:30px}
-.am .sub{font:500 21px var(--f);color:var(--mut);margin:2px 0 8px}
-.am .r{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 0;border-top:1px solid var(--line);min-height:0}
-.am .r .nm{font-size:23px;white-space:nowrap}
-.am .r span:last-child{font:500 21px var(--f);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;min-width:0}
-.am .r i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:10px}
+.tc.free .cl{color:var(--teal);font-size:28px}
+.am{grid-column:span 2;padding:16px 28px 14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.am .hd{display:flex;align-items:baseline;gap:16px;margin-bottom:6px}
+.am h3{font-size:28px}
+.am .sub{font:500 20px var(--f);color:var(--mut)}
+.am .lst{flex:1;min-height:0;display:grid;grid-auto-flow:column;grid-template-rows:repeat(4,1fr);column-gap:36px}
+.am .r{display:flex;justify-content:space-between;align-items:center;gap:14px;border-top:1px solid var(--line);min-height:0;min-width:0}
+.am .r .nm{font-size:21px;white-space:nowrap}
+.am .r>span:first-child{display:flex;align-items:center;white-space:nowrap}
+.am .r>span:last-child{font:500 20px var(--f);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;min-width:0}
+.am .r i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:10px;flex:none}
 
 /* ---- slide: próximas semanas ---- */
 .tlp{height:100%;padding:24px 34px 26px;display:flex;flex-direction:column}
@@ -181,8 +186,9 @@ const WDL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sába
 const COV = { treinamento: ['Treinamento', '#38B3C2'], ferias: ['Férias', '#D9A04B'], dayoff: ['Dayoff', '#A194DD'], falta: ['Falta', '#E27C6F'], atestado: ['Atestado', '#5FB58C'] };
 const plural = (n, s, p) => (n === 1 ? s : p);
 const lbl = (a) => (a.site ? a.client + ' · ' + a.site : a.client);
-const covC = (a) => (COV[a.coverage] || ['', '#7D929C'])[1];
-const covL = (a) => (COV[a.coverage] || [a.coverage])[0];
+const COV_EXTRA = { acompanhamento: ['Acompanhamento', '#6C9BE0'] };
+const covC = (a) => (COV[a.coverage] || COV_EXTRA[a.coverage] || ['', '#7D929C'])[1];
+const covL = (a) => (COV[a.coverage] || COV_EXTRA[a.coverage] || [String(a.coverage || '').replace(/^./, (m) => m.toUpperCase())])[0];
 
 function nameEl(full, tag) {
   const n = String(full).replace(/\s*\(inativo\)\s*/, '').trim(); const i = n.indexOf(' ');
@@ -242,11 +248,16 @@ function telaHoje() {
     if (a) {
       const p = el('span', 'pill', covL(a)); p.style.background = covC(a); top.append(p);
       c.append(top, el('div', 'cl', lbl(a)));
+      const ad = DATA.addresses[a.client + '|' + (a.site || '')];
+      if (ad) {
+        const short = ad.replace(/,\s*\d{5}-\d{3}$/, '').replace(/,\s*São Paulo - SP$/, '').replace(/\s-\sSP$/, '');
+        const row = el('div', 'ad'); row.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+        const sp = el('span', null, short); row.append(sp); row.title = ad; c.append(row);
+      }
       const left = diff(C.D, a.end) + 1;
       const meta = el('div', 'meta'); meta.append('até ', el('b', null, dm(a.end)), ' · ' + left + ' ' + plural(left, 'dia restante', 'dias restantes')); c.append(meta);
       const tot = diff(a.start, a.end) + 1, done = Math.min(tot, Math.max(0, diff(a.start, C.D) + 1));
-      const pr = el('div', 'pr'); const sp = el('span'); sp.style.width = (done / tot * 100) + '%'; sp.style.background = covC(a); pr.append(sp); c.append(pr);
-      const ad = DATA.addresses[a.client + '|' + (a.site || '')]; if (ad) c.append(el('div', 'ad', '📍 ' + ad));
+      const pr = el('div', 'pr'); const sp2 = el('span'); sp2.style.width = (done / tot * 100) + '%'; sp2.style.background = covC(a); pr.append(sp2); c.append(pr);
     } else {
       const p = el('span', 'pill', 'Disponível'); p.style.background = '#2f7f6b'; top.append(p);
       const nx = C.open.find((x) => x.techId === t.id && x.start > C.D);
@@ -257,11 +268,13 @@ function telaHoje() {
   });
   /* Amanhã / próximo dia útil */
   const nd = nextWD(addDays(C.D, 1)); const word = nd === addDays(C.T, 1) ? 'Amanhã' : WDL[parse(nd).getDay()];
-  const am = el('div', 'panel am'); am.append(el('h3', null, word + ' · ' + dm(nd)), el('div', 'sub', 'onde cada técnico estará'));
+  const am = el('div', 'panel am'); const hd = el('div', 'hd'); hd.append(el('h3', null, word + ' · ' + dm(nd)), el('div', 'sub', 'onde cada técnico estará')); am.append(hd);
+  const lst = el('div', 'lst');
   C.techs.forEach((t) => {
     const a = C.onDay(nd, t.id); const r = el('div', 'r'); const l = el('span'); const dot = el('i'); dot.style.background = a ? covC(a) : '#2f7f6b'; l.append(dot, nameEl(t.name.split(' ')[0]));
-    r.append(l, el('span', null, a ? lbl(a) : 'Disponível')); am.append(r);
+    r.append(l, el('span', null, a ? lbl(a) : 'Disponível')); lst.append(r);
   });
+  am.append(lst);
   cards.append(am); g.append(cards); s.append(g);
   return { s, titulo: 'Em campo ' + C.dayTxt, nome: 'Hoje' };
 }
