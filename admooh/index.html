@@ -186,7 +186,7 @@ const WDL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sába
 const COV = { treinamento: ['Treinamento', '#38B3C2'], ferias: ['Férias', '#D9A04B'], dayoff: ['Dayoff', '#A194DD'], falta: ['Falta', '#E27C6F'], atestado: ['Atestado', '#5FB58C'] };
 const plural = (n, s, p) => (n === 1 ? s : p);
 const lbl = (a) => (a.site ? a.client + ' · ' + a.site : a.client);
-const COV_EXTRA = { acompanhamento: ['Acompanhamento', '#6C9BE0'], escritorio: ['Escritório', '#8FB3A8'] };
+const COV_EXTRA = { acompanhamento: ['Acompanhamento', '#6C9BE0'], escritorio: ['Escritório', '#8FB3A8'], feriado: ['Feriado', '#C9B07F'] };
 const covC = (a) => (COV[a.coverage] || COV_EXTRA[a.coverage] || ['', '#7D929C'])[1];
 const covL = (a) => (COV[a.coverage] || COV_EXTRA[a.coverage] || [String(a.coverage || '').replace(/^./, (m) => m.toUpperCase())])[0];
 
@@ -226,14 +226,15 @@ function visitedMap(C) {
 function telaHoje() {
   const C = mkctx(); const s = el('section', 'slide'); const g = el('div', 'hoje');
   const field = C.techs.filter((t) => C.onDay(C.D, t.id));
+  const working = field.filter((t) => C.onDay(C.D, t.id).coverage !== 'feriado');
   const clients = new Set(field.map((t) => C.onDay(C.D, t.id).client).filter((c) => DATA.clients.includes(c)));
   const vm = visitedMap(C); const unv = DATA.clients.filter((c) => !vm[c].visited).length;
-  const andamentoN = DATA.assignments.filter((a) => C.eff(a) === 'andamento').length;
+  const andamentoN = DATA.assignments.filter((a) => C.eff(a) === 'andamento' && a.coverage !== 'feriado').length;
 
   const band = el('div', 'panel kpis');
   const kpi = (v, l, sub, cor) => { const c = el('div', 'kpi'); const vv = el('div', 'v', v); if (cor) vv.style.color = cor; c.append(vv, el('div', 'l', l), el('div', 's', sub)); return c; };
   band.append(
-    kpi(field.length, 'Técnicos em campo', 'de ' + C.techs.length + ' ativos · ' + C.dayTxt),
+    kpi(working.length, 'Técnicos em campo', 'de ' + C.techs.length + ' ativos · ' + C.dayTxt),
     kpi(clients.size, plural(clients.size, 'Cliente atendido', 'Clientes atendidos'), C.dayTxt),
     kpi(C.techs.length - field.length, plural(C.techs.length - field.length, 'Disponível', 'Disponíveis'), 'sem agenda ' + C.dayTxt, 'var(--ok)'),
     kpi(andamentoN, 'Em andamento', plural(andamentoN, 'período ativo', 'períodos ativos')),
