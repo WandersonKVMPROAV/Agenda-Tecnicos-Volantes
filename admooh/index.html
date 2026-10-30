@@ -186,7 +186,7 @@ const WDL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sába
 const COV = { treinamento: ['Treinamento', '#38B3C2'], ferias: ['Férias', '#D9A04B'], dayoff: ['Dayoff', '#A194DD'], falta: ['Falta', '#E27C6F'], atestado: ['Atestado', '#5FB58C'] };
 const plural = (n, s, p) => (n === 1 ? s : p);
 const lbl = (a) => (a.site ? a.client + ' · ' + a.site : a.client);
-const COV_EXTRA = { acompanhamento: ['Acompanhamento', '#6C9BE0'] };
+const COV_EXTRA = { acompanhamento: ['Acompanhamento', '#6C9BE0'], escritorio: ['Escritório', '#8FB3A8'] };
 const covC = (a) => (COV[a.coverage] || COV_EXTRA[a.coverage] || ['', '#7D929C'])[1];
 const covL = (a) => (COV[a.coverage] || COV_EXTRA[a.coverage] || [String(a.coverage || '').replace(/^./, (m) => m.toUpperCase())])[0];
 
@@ -226,7 +226,7 @@ function visitedMap(C) {
 function telaHoje() {
   const C = mkctx(); const s = el('section', 'slide'); const g = el('div', 'hoje');
   const field = C.techs.filter((t) => C.onDay(C.D, t.id));
-  const clients = new Set(field.map((t) => C.onDay(C.D, t.id).client));
+  const clients = new Set(field.map((t) => C.onDay(C.D, t.id).client).filter((c) => DATA.clients.includes(c)));
   const vm = visitedMap(C); const unv = DATA.clients.filter((c) => !vm[c].visited).length;
   const andamentoN = DATA.assignments.filter((a) => C.eff(a) === 'andamento').length;
 
@@ -255,7 +255,9 @@ function telaHoje() {
         const sp = el('span', null, short); row.append(sp); row.title = ad; c.append(row);
       }
       const left = diff(C.D, a.end) + 1;
-      const meta = el('div', 'meta'); meta.append('até ', el('b', null, dm(a.end)), ' · ' + left + ' ' + plural(left, 'dia restante', 'dias restantes')); c.append(meta);
+      const meta = el('div', 'meta'); meta.append('até ', el('b', null, dm(a.end)), ' · ');
+      if (a.horario) meta.append(el('b', null, a.horario)); else meta.append(left + ' ' + plural(left, 'dia restante', 'dias restantes'));
+      c.append(meta);
       const tot = diff(a.start, a.end) + 1, done = Math.min(tot, Math.max(0, diff(a.start, C.D) + 1));
       const pr = el('div', 'pr'); const sp2 = el('span'); sp2.style.width = (done / tot * 100) + '%'; sp2.style.background = covC(a); pr.append(sp2); c.append(pr);
     } else {
